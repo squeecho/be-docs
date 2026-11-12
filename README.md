@@ -1,4 +1,4 @@
-> **be docs 공개 소스** (GPL-3.0-or-later, `LICENSE`). 스토어에 올리는 판마다 한 커밋으로 올리고 판 이름(`v0.2.97` 등)으로 태그한다.
+> **be docs 0.2.97 공개 소스** (GPL-3.0-or-later, `LICENSE`). 스토어에 올리는 판마다 한 커밋으로 올린다(커밋 메시지 "be docs <판> 소스").
 > 출시 운영 문서(`store/`)와 디버그 서명 키는 넣지 않았다. 디버그 빌드는 안드로이드 기본 디버그 키로 서명된다.
 > 빌드 전에 `scripts/fetch-vendor.sh`로 화면 라이브러리(`app/src/main/assets/viewer/vendor/`)를 받는다.
 
