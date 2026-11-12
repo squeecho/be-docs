@@ -1,0 +1,21 @@
+<html><head><meta charset="utf-8">
+<meta http-equiv="refresh" content="0;url=http://evil.example/refresh">
+<base href="http://evil.example/">
+<link rel="stylesheet" href="http://evil.example/x.css">
+<style>@import url(http://evil.example/imp.css); body{background:url(http://evil.example/bg.png)}</style>
+<script>window.__pwned=1</script></head>
+<body onload="window.__pwned=1">
+<p>보고서 본문</p>
+<img src=x onerror="window.__pwned=1">
+<img src="http://evil.example/track.png">
+<svg onload="window.__pwned=1"><a xlink:href="javascript:window.__pwned=1"><text x="10" y="20">클릭</text></a><animate attributeName="href" values="javascript:window.__pwned=1"/></svg>
+<iframe srcdoc="&lt;script&gt;parent.__pwned=1&lt;/script&gt;"></iframe>
+<object data="javascript:window.__pwned=1"></object>
+<form action="javascript:window.__pwned=1"><button>클릭</button></form>
+<details open ontoggle="window.__pwned=1"><summary>요약</summary></details>
+<video><source onerror="window.__pwned=1"></video>
+<math><maction actiontype="statusline" xlink:href="javascript:window.__pwned=1">클릭</maction></math>
+<a href="javascript:window.__pwned=1">자바스크립트 링크</a>
+<a href="data:text/html,&lt;script&gt;alert(1)&lt;/script&gt;">링크</a>
+<p style="background:url(http://evil.example/inline.png)">끝</p>
+</body></html>

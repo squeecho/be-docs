@@ -1,0 +1,136 @@
+# file	mime	expect	note	contains	maxMs(PC 브라우저에서 끝 상태까지 허용 시간, 비우면 제한 없음)
+hwp3-hangul97.hwp	application/x-hwp	rendered:hwp	HWP 3.0 (한글 97)	
+hwp5.0.2.5.hwp	application/x-hwp	rendered:hwp	HWP 5.0.2.5	
+hwp5.0.3.0.hwp	application/x-hwp	rendered:hwp	HWP 5.0.3.0 (한글 2007·2010)	
+hwp5.0.3.4-blank.hwp	application/x-hwp	rendered:hwp	HWP 5.0.3.4 빈 문서	
+hwp5.1.0.1.hwp	application/x-hwp	rendered:hwp	HWP 5.1.0.1 (한글 2014 이후)	
+hwp5.1.1.0-distribution.hwp	application/x-hwp	rendered:hwp	배포용 문서 5.1.1.0	
+hwpx-5.1.0.0.hwpx	application/haansofthwpx	rendered:hwp	HWPX (한글 2014 이후 기본 형식)	
+hwpx-from-rhwp.hwpx	application/haansofthwpx	rendered:hwp	다른 프로그램이 만든 HWPX	
+hml-hwpml.hml	application/octet-stream	rendered:hwp	HML(HWPML XML)	
+hwp5-password-1234.hwp	application/x-hwp	password:1234	비밀번호 HWP(5.0, EncryptVersion 4)	
+hwpx-password-1234.hwpx	application/haansofthwpx	password:1234	비밀번호 HWPX(AES-256)	
+fuzz-ofz44990-1.hwp	application/x-hwp	error:any	망가뜨린(퍼징) 파일: 비밀번호를 묻지 않고 안내(암호 표시만 켜진 손상 파일)	
+fuzz-ofz44992-1.hwp	application/x-hwp	error:any	망가뜨린(퍼징) 파일: 멈추지 않고 안내	
+fuzz-ofz44997-1.hwp	application/x-hwp	error:any	망가뜨린(퍼징) 파일: 비밀번호를 묻지 않고 안내(암호 표시만 켜진 손상 파일)	
+excel3-biff3.xls	application/vnd.ms-excel	rendered:sheet	Excel 3.0 (BIFF3)	
+excel4-biff4.xls	application/vnd.ms-excel	rendered:sheet	Excel 4.0 (BIFF4)	
+excel95-biff5.xls	application/vnd.ms-excel	rendered:sheet	Excel 95 (BIFF5)	
+excel97-biff8.xls	application/vnd.ms-excel	rendered:sheet	Excel 97–2003 (BIFF8)	철판 2T
+excel2007.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:sheet	Excel 2007+ xlsx	철판 2T
+excel-ooxml-strict.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:sheet	Office Open XML 변형	철판 2T
+excel-macro.xlsm	application/vnd.ms-excel.sheet.macroenabled.12	rendered:sheet	매크로 포함 xlsm	철판 2T
+excel-binary.xlsb	application/vnd.ms-excel.sheet.binary.macroenabled.12	rendered:sheet	Excel 바이너리 xlsb	
+calc.ods	application/octet-stream	rendered:sheet	OpenDocument 스프레드시트	철판 2T
+excel-password-rc4.xls	application/vnd.ms-excel	password:password	비밀번호 xls(97~2003 RC4, 입력해서 열기)	
+excel-password-standard.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	password:tika	비밀번호 xlsx(Office 2007 Standard 암호, AES-128)	
+html-as-xls-utf8.xls	application/vnd.ms-excel	rendered:sheet	엑셀 다운로드(HTML 표, UTF-8)	철판 2T
+html-as-xls-euckr.xls	application/vnd.ms-excel	rendered:sheet	엑셀 다운로드(HTML 표, EUC-KR)	철판 2T
+tsv-as-xls-cp949.xls	application/vnd.ms-excel	rendered:sheet	엑셀 다운로드(탭 구분 텍스트, CP949)	철판 2T
+spreadsheetml-2003.xls	application/vnd.ms-excel	rendered:sheet	Excel 2003 XML(.xls 이름)	철판 2T
+spreadsheetml-2003.xml	application/octet-stream	rendered:sheet	Excel 2003 XML(.xml 이름)	철판 2T
+csv-utf8.csv	text/csv	rendered:sheet	CSV UTF-8	홍길동
+csv-utf8-bom.csv	text/csv	rendered:sheet	CSV UTF-8 BOM(엑셀 저장)	홍길동
+csv-cp949.csv	text/csv	rendered:sheet	CSV CP949(엑셀 한국어 기본)	홍길동
+unicode-text-utf16.txt	text/plain	rendered:sheet	엑셀 '유니코드 텍스트'(UTF-16 탭)	홍길동
+csv-semicolon.csv	text/csv	rendered:sheet	세미콜론 구분 CSV	영업팀; 2파트
+ppt95.ppt	application/vnd.ms-powerpoint	error:unsupported	PowerPoint 95 (다른 앱 안내)	
+ppt97.ppt	application/vnd.ms-powerpoint	rendered:slides	PowerPoint 97–2003	사업 계획
+pptx-2007.pptx	application/vnd.openxmlformats-officedocument.presentationml.presentation	rendered:slides	PowerPoint 2007+	사업 계획
+pptx-bullet-entity.pptx	application/vnd.openxmlformats-officedocument.presentationml.presentation	rendered:slides	글머리 기호가 XML 문자 참조(&#x2022;·&#8211;): 기호로 보여야 함	R&D <재고> → 개선
+pptx-ooxml.pptx	application/vnd.openxmlformats-officedocument.presentationml.presentation	rendered:slides	Office Open XML 변형	사업 계획
+ppsx-slideshow.ppsx	application/vnd.openxmlformats-officedocument.presentationml.slideshow	rendered:slides	슬라이드쇼 ppsx	사업 계획
+potx-template.potx	application/octet-stream	rendered:slides	서식 파일 potx	사업 계획
+pptm-macro.pptm	application/vnd.ms-powerpoint.presentation.macroenabled.12	rendered:slides	매크로 포함 pptm	
+ppt-password.ppt	application/vnd.ms-powerpoint	error:password	비밀번호 ppt	
+impress.odp	application/octet-stream	rendered:simple	ODP (간단 보기: 슬라이드별 글자·표)	사업 계획
+pdf-1.3-header.pdf	application/pdf	rendered:pdf	PDF 1.3	
+pdf-1.4-pdfa1b.pdf	application/pdf	rendered:pdf	PDF/A-1b (1.4)	
+pdf-1.5.pdf	application/pdf	rendered:pdf	PDF 1.5 (객체 스트림)	
+pdf-1.6.pdf	application/pdf	rendered:pdf	PDF 1.6	
+pdf-1.7.pdf	application/pdf	rendered:pdf	PDF 1.7	
+pdf-1.7-pdfa2b.pdf	application/pdf	rendered:pdf	PDF/A-2b	
+pdf-2.0-header.pdf	application/pdf	rendered:pdf	PDF 2.0 헤더	
+pdf-user-pw-RC4-40.pdf	application/pdf	password:1234	열기 비밀번호 PDF(입력해서 열기) (RC4-40)	
+pdf-user-pw-RC4-128.pdf	application/pdf	password:1234	열기 비밀번호 PDF(입력해서 열기) (RC4-128)	
+pdf-user-pw-AES-128.pdf	application/pdf	password:1234	열기 비밀번호 PDF(입력해서 열기) (AES-128)	
+pdf-user-pw-AES-256.pdf	application/pdf	password:1234	열기 비밀번호 PDF(입력해서 열기) (AES-256)	
+pdf-owner-only-RC4-128.pdf	application/pdf	rendered:pdf	권한 암호만 걸린 PDF (RC4-128, 열기는 자유)	
+pdf-owner-only-AES-256.pdf	application/pdf	rendered:pdf	권한 암호만 걸린 PDF (AES-256, 열기는 자유)	
+pdf-mixed-sizes.pdf	application/pdf	rendered:pdf	가로·세로·A5·A3 섞임	
+pdf-scanned-image.pdf	application/pdf	rendered:pdf	스캔본(그림만)	
+pdf-truncated.pdf	application/pdf	error:any	중간이 잘린 PDF	
+empty-0byte.hwp	application/x-hwp	error:any	0바이트 파일	
+word.docx	application/octet-stream	rendered:word	다른 프로그램이 만든 docx	테스트
+word2007.docx	application/vnd.openxmlformats-officedocument.wordprocessingml.document	rendered:word	Word 2007+ docx(python-docx)	업무 협조 요청
+word2007-libreoffice.docx	application/vnd.openxmlformats-officedocument.wordprocessingml.document	rendered:word	LibreOffice가 저장한 docx	업무 협조 요청
+word-ooxml.docx	application/vnd.openxmlformats-officedocument.wordprocessingml.document	rendered:word	Office Open XML 변형	업무 협조 요청
+word97-2003.doc	application/msword	rendered:word	Word 97–2003 doc	업무 협조 요청
+word-macro.docm	application/vnd.ms-word.document.macroenabled.12	rendered:word	매크로 포함 docm	업무 협조 요청
+word-template.dotx	application/vnd.openxmlformats-officedocument.wordprocessingml.template	rendered:word	서식 파일 dotx	업무 협조 요청
+word-docx-noext	application/octet-stream	rendered:word	이름·형식 없이 넘어온 docx	업무 협조 요청
+word-doc-noext	application/octet-stream	rendered:word	이름·형식 없이 넘어온 doc	업무 협조 요청
+word95.doc	application/msword	rendered:simple	Word 95 (간단 보기: 글자만)	quick brown fox
+word6.doc	application/msword	rendered:simple	Word 6.0 (간단 보기: 글자만)	quick brown fox
+word2.doc	application/msword	rendered:simple	Word 2.0 (간단 보기: 글자만)	3GPP
+word-password-rc4.doc	application/msword	password:tika	비밀번호 doc(RC4)	This is an encrypted Word 2007 File
+word-password-cryptoapi.doc	application/msword	password:password	비밀번호 doc(CryptoAPI)	This is a test
+word-password-agile.docx	application/vnd.openxmlformats-officedocument.wordprocessingml.document	no-hang	비밀번호 docx(Agile, SHA-1·AES-256, 비밀번호 모름 → 입력창이 뜨는지만)	
+word.rtf	application/rtf	rendered:simple	RTF (간단 보기)	업무 협조 요청
+word-rtf-as-doc.doc	application/msword	rendered:simple	RTF를 .doc 이름으로 저장(간단 보기)	업무 협조 요청
+writer.odt	application/octet-stream	rendered:simple	ODT (간단 보기)	업무 협조 요청
+word2003.xml	application/octet-stream	rendered:simple	Word 2003 XML (간단 보기)	업무 협조 요청
+word-html-as-doc.doc	application/msword	rendered:simple	웹 시스템이 HTML을 .doc로 준 파일(간단 보기)	업무 협조 요청
+word-nested-tables.docx	application/vnd.openxmlformats-officedocument.wordprocessingml.document	error:any	표 60겹 중첩(비정상 → 안내)	
+word-empty.doc	application/msword	no-hang	빈 doc	
+pdf-annotations.pdf	application/pdf	rendered:pdf	도장(스탬프)·입력된 서식 칸·사각 주석	Annotation test page
+pdf-autocad-shx.pdf	application/pdf	rendered:pdf	AutoCAD식 도면: 글자를 선으로 그리고 검색용 주석(AutoCAD SHX Text) 3개 + 진짜 메모 1개	
+excel-formula-nocache.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:sheet	수식 결과가 저장되지 않은 파일(openpyxl) — 앱이 계산	309,000원
+excel-formulas-63.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:sheet	흔한 함수 63종(결과 없음) — LibreOffice 값과 비교한 파일	두 칸
+excel-korean-number.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:sheet	[DBNum1~4] 한글·한자 숫자 표기	일금 일만이천삼백사십오원정
+excel-builtin-date.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:sheet	내장 날짜 서식(14·한국어판 31번) → 2026-10-07	2026-10-07
+excel-images.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:sheet	회사 로고·직인 그림이 든 견적서	대표이사 홍길동
+xlsx-agile-1234.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	password:1234	비밀번호 xlsx(Agile, SHA-512·AES-256)	철판 2T
+docx-agile-1234.docx	application/vnd.openxmlformats-officedocument.wordprocessingml.document	password:1234	비밀번호 docx(Agile, SHA-512·AES-256)	
+pptx-agile-ko.pptx	application/vnd.openxmlformats-officedocument.presentationml.presentation	password:비밀번호1	비밀번호 pptx(Agile, 한글 비밀번호)	사업 계획
+excel-images.xls	application/vnd.ms-excel	rendered:sheet	옛 xls 속 로고·직인(OfficeArt 그림)	대표이사 홍길동
+locked-like.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	error:protected	보안 프로그램으로 잠긴 것 같은 파일(무작위 내용): 깨진 글자 표 대신 안내	
+locked-like.docx	application/vnd.openxmlformats-officedocument.wordprocessingml.document	error:protected	보안 프로그램으로 잠긴 것 같은 docx	
+locked-like.hwp	application/x-hwp	error:protected	보안 프로그램으로 잠긴 것 같은 hwp	
+locked-like.pdf	application/pdf	error:protected	보안 프로그램으로 잠긴 것 같은 pdf	
+locked-like-ole.doc	application/msword	error:protected	문서 본문 없이 다른 내용을 감싼 OLE	
+excel-fills.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:sheet	칸 배경색(진한 머리글·연한 합계 줄)	철판 2T
+excel-rich.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:sheet	틀 고정·숨긴 행열·메모·차트 2개·숨긴 시트·글꼴·테두리	2026년 지점별 매출 보고서
+excel-rich.xls	application/vnd.ms-excel	rendered:sheet	같은 내용의 옛 xls(차트는 안내로)	2026년 지점별 매출 보고서
+excel-chart-nocache.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:sheet	차트에 저장된 값이 없어 칸에서 읽어 그리는 경우	2026년 지점별 매출 보고서
+text-memo.txt	text/plain	rendered:simple	메모 같은 일반 글 .txt: 표가 아니라 글 그대로	출장비 정산은 금요일
+archive.zip	application/zip	error:unsupported	문서가 아닌 일반 압축 파일: 손상이 아니라 압축 파일이라고 안내	
+excel-conditional.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:sheet	조건부 서식 12규칙(값 비교·사이·글자·중복·상위·평균·색 단계·데이터 막대·아이콘·수식)	지연 위험
+excel-dimension-small.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:sheet	시트 크기 표시(dimension)가 실제보다 작은 파일: 바깥 칸도 보여야 함	비고
+word-extras.docx	application/vnd.openxmlformats-officedocument.wordprocessingml.document	rendered:word	메모·수정 표시·수식이 든 docx(화면 위에 알림·메모 보기)	납품 일정은
+word-12-pages.docx	application/vnd.openxmlformats-officedocument.wordprocessingml.document	rendered:word	쪽 나누기로 12쪽인 docx(쪽 모양): PDF로 저장이 모든 쪽을 그리는지	1쪽 제목
+word-long-reading.docx	application/vnd.openxmlformats-officedocument.wordprocessingml.document	rendered:word	긴 docx(원본 모양 36쪽): 엔진 없이 빠른 읽기(docx-read.js)로 읽기 모드를 먼저 엶	끝 문단 표식 4729	
+word-long-reading.doc	application/msword	rendered:word	긴 doc(같은 문서를 LibreOffice로 97–2003 저장): 엔진이 읽은 구조로 읽기 모드	끝 문단 표식 4729	
+slides-extras.pptx	application/vnd.openxmlformats-officedocument.presentationml.presentation	rendered:slides	발표자 노트·숨긴 슬라이드가 든 pptx	분기 실적 발표
+slides-12.pptx	application/vnd.openxmlformats-officedocument.presentationml.presentation	rendered:slides	16:9 슬라이드 12장: PDF로 저장이 모든 슬라이드를 그리는지	슬라이드 1
+hwp-memo.hwp	application/x-hwp	rendered:hwp	메모 15개가 든 한글(본문에 안 보이는 번역 메모)	
+word-cut-short.doc	application/msword	error:damaged	word97-2003.doc 앞 11.5KB만 남긴 파일(덜 받아짐): 보안 잠김이 아니라 덜 받아졌다고 안내	끝까지 받지 못했어요	
+excel-as-doc.doc	application/msword	rendered:sheet	엑셀(xls)을 .doc 이름으로 보낸 파일: 내용대로 엑셀로	대표이사 홍길동	
+hwp-as-xlsx.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:hwp	한글(hwp)을 .xlsx 이름으로 보낸 파일: 내용대로 한글로		
+excel-junk-before.xls	application/vnd.ms-excel	rendered:sheet	xls 앞에 1바이트가 붙어 온 파일: 잘라 내고 열기(깨진 글자 표 금지)	대표이사 홍길동	
+csv-utf16le-nobom.csv	text/csv	rendered:sheet	머리 표시(BOM) 없는 UTF-16 CSV	이름	
+kakao-chat.txt	text/plain	rendered:simple	카카오톡 대화 내보내기(줄마다 쉼표): 표가 아니라 글로	견적서는 금요일까지	
+excel-formula-wholesheet.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:sheet	결과 없는 SUM(A:XFD) 수식: 시트 전체를 읽다 멈추지 않기		8000
+excel-merge-whole-columns.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	rendered:sheet	열 전체(A1:A1048576)를 합친 병합 30개		5000
+excel-zip-endless.xlsx	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	error:damaged	압축 데이터가 깨져 엑셀 엔진이 끝나지 않는 파일: 시간 제한 뒤 안내	읽다가 멈췄어요	40000
+writer-damaged.odt	application/vnd.oasis.opendocument.text	error:damaged	중앙 목록·본문이 깨진 ODT: 멈추지 않고 바로 안내		5000
+hml-as-xls.xls	application/vnd.ms-excel	rendered:hwp	BOM 붙은 한글 HML을 .xls 이름으로 보낸 파일: 표가 아니라 한글로		
+csv-noext	application/octet-stream	rendered:sheet	확장자 없는 CSV(따옴표 안 쉼표 포함): 내용을 보고 표로	2파트	
+pdf-no-print-copy.pdf	application/pdf	rendered:pdf	인쇄·복사를 막은 PDF(권한 암호만, 열기는 자유). 쪽을 이미지로 내보내기는 막는다	
+illustrator-pdf.ai	application/postscript	rendered:pdf	일러스트레이터 PDF 호환 저장(기본값): PDF로 열고 한계 안내	AI 간판
+illustrator-no-pdf.ai	application/illustrator	error:unsupported	일러스트레이터 PDF 호환 끄고 저장: 안내 글 쪽 대신 다시 저장 안내	
+illustrator-8.ai	application/postscript	error:unsupported	옛 일러스트레이터(8, PostScript): 열지 않고 안내	
+cad-2018.dwg	image/vnd.dwg	rendered:cad	CAD DWG 2018(LibreDWG 시험 도면 example_2018, GPL-3.0): 선·호·스플라인·해치·치수·블록·속성	
+cad-r14.dwg	application/acad	rendered:cad	CAD DWG R14(LibreDWG 시험 도면 example_r14, GPL-3.0): 옛 판	
+cad-korean-cp949.dxf	application/dxf	rendered:cad	CAD DXF 2000, 한국어 코드 페이지(ANSI_949): 도면층 색·꺼진 층·블록·볼록 폴리선·채운 해치·글자·MTEXT 서식	
+cad-truncated.dwg	application/octet-stream	error:damaged	CAD DWG 앞 20KB만(덜 받아진 파일): 그릴 것이 없다고 안내	

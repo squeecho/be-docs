@@ -1,0 +1,4 @@
+<img src=x onerror="window.__pwned=1;alert(1)">
+<script>window.__pwned=1</script>
+"><svg onload=alert(1)>
+javascript:alert(1)

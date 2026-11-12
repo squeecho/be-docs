@@ -1,0 +1,9 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.kotlin/
+# 빌드 전에 scripts/fetch-vendor.sh 로 받는 외부 라이브러리
+app/src/main/assets/viewer/vendor/
+viewer-libs/node_modules/

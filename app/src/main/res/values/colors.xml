@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- assets/viewer/viewer.css 의 배경색(bg 변수)과 같은 색 -->
+    <color name="viewer_bg">#F2F3F6</color>
+    <color name="icon_bg">#0B2347</color>
+    <bool name="light_bars">true</bool>
+</resources>

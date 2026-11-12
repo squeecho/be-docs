@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 테스트 APK 전용: 카카오톡처럼 다른 앱이 content:// 주소로 파일을 넘기는 상황을 흉내 낸다. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <provider
+            android:name="com.squeecho.docviewer.TestFilesProvider"
+            android:authorities="com.squeecho.docviewer.test.files"
+            android:exported="true" />
+    </application>
+</manifest>

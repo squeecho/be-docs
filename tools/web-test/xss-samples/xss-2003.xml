@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Word.Document"?>
+<w:wordDocument xmlns:w="http://schemas.microsoft.com/office/word/2003/wordml"><w:body>
+<w:p><w:hlink w:dest="javascript:window.__pwned=1"><w:r><w:t>클릭</w:t></w:r></w:hlink></w:p>
+<w:p><w:r><w:t>&lt;img src=x onerror="window.__pwned=1"&gt;</w:t></w:r></w:p></w:body></w:wordDocument>

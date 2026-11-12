@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.DocViewer" parent="@android:style/Theme.DeviceDefault.DayNight">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowBackground">@color/viewer_bg</item>
+        <item name="android:statusBarColor">@color/viewer_bg</item>
+        <item name="android:navigationBarColor">@color/viewer_bg</item>
+        <item name="android:windowLightStatusBar">@bool/light_bars</item>
+        <item name="android:windowLightNavigationBar">@bool/light_bars</item>
+        <!-- 문서는 원본 색 그대로 보여야 하므로 시스템의 강제 다크 모드를 받지 않는다(앱은 스스로 어두운 화면을 지원한다). -->
+        <item name="android:forceDarkAllowed">false</item>
+    </style>
+</resources>

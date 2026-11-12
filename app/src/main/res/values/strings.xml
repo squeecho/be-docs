@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 기본(한국어가 아닌 모든 언어)은 영어, 한국어는 values-ko. 화면(viewer) 글자는 assets/viewer/i18n.js -->
+<resources>
+    <string name="app_name" translatable="false">be docs</string>
+    <string name="open_elsewhere">Open in another app</string>
+    <string name="open_elsewhere_slow">Opening this document is taking a while. Open in another app</string>
+    <string name="picker_unavailable">Can’t open the file picker.</string>
+    <string name="no_app_to_open">No other app can open this file.</string>
+    <string name="share_file">Share file</string>
+    <string name="share_copy_failed">Couldn’t prepare the file to share. Check your phone’s free storage.</string>
+    <string name="no_app_to_share">No app can share this file.</string>
+    <string name="download_busy">Saving to Downloads…</string>
+    <string name="download_done">Saved to Downloads: %1$s</string>
+    <string name="download_failed">Couldn’t save to Downloads. Check your phone’s free storage.</string>
+    <string name="share_images">Share images</string>
+    <string name="no_app_to_share_images">No app can share these images.</string>
+    <string name="play_store_unavailable">Can’t open the Play Store.</string>
+    <plurals name="gallery_saved">
+        <item quantity="one">Saved %2$d image to the “%1$s” album.</item>
+        <item quantity="other">Saved %2$d images to the “%1$s” album.</item>
+    </plurals>
+    <string name="pdf_read_failed">Couldn’t read the PDF.</string>
+    <string name="err_no_permission">No permission to read the file. Open it again from the app you received it in.</string>
+    <string name="err_not_found">File not found. Check that the download has finished.</string>
+    <string name="err_unknown">Unknown error</string>
+    <string name="err_temp_dir">Couldn’t create a temporary folder.</string>
+    <string name="err_cannot_open">Can’t open the file.</string>
+    <string name="err_too_big">The file is too large (over 300 MB).</string>
+    <string name="err_private_file">Files inside the app can’t be opened.</string>
+    <string name="doc_default_name">Document</string>
+    <string name="pdf_save_failed">Couldn’t open printing to save as PDF.</string>
+</resources>

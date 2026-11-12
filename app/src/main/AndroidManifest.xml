@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 인터넷 권한을 일부러 넣지 않는다. 광고·추적이 들어올 수 없고 문서가 밖으로 나가지 않는다. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.DocViewer"
+        android:usesCleartextTraffic="false">
+
+        <!-- configChanges: 폴드를 접고 펴도 화면을 새로 만들지 않아 열어 둔 문서가 그대로 유지된다. -->
+        <activity
+            android:name=".ViewerActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|density|keyboard|keyboardHidden|navigation"
+            android:exported="true"
+            android:resizeableActivity="true"
+            android:windowSoftInputMode="adjustResize">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- 카톡 "다른 앱으로 열기"·파일 앱에서 열기. 앱마다 HWP 형식 이름이 달라 여러 개를 등록한다.
+                 RTF·ODT·ODP는 간단 보기(글자·표·그림)로 연다. -->
+            <intent-filter android:label="@string/app_name">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/x-hwp" />
+                <data android:mimeType="application/hwp" />
+                <data android:mimeType="application/haansofthwp" />
+                <data android:mimeType="application/vnd.hancom.hwp" />
+                <data android:mimeType="application/x-hwpx" />
+                <data android:mimeType="application/haansofthwpx" />
+                <data android:mimeType="application/vnd.hancom.hwpx" />
+                <data android:mimeType="application/hwp+zip" />
+                <data android:mimeType="application/vnd.ms-excel" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+                <data android:mimeType="application/vnd.ms-excel.sheet.macroenabled.12" />
+                <data android:mimeType="application/vnd.ms-excel.sheet.binary.macroenabled.12" />
+                <data android:mimeType="text/csv" />
+                <data android:mimeType="text/comma-separated-values" />
+                <data android:mimeType="text/tab-separated-values" />
+                <!-- 일반 글(.txt, 카톡 대화 내보내기 등). 공유 받기(SEND)에는 넣지 않는다: 링크·글 공유마다 목록에 떠서 빈 화면이 된다. -->
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="application/vnd.ms-powerpoint" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.presentationml.presentation" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.presentationml.slideshow" />
+                <data android:mimeType="application/vnd.ms-powerpoint.presentation.macroenabled.12" />
+                <data android:mimeType="application/msword" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.template" />
+                <data android:mimeType="application/vnd.ms-word.document.macroenabled.12" />
+                <data android:mimeType="application/vnd.ms-word.template.macroenabled.12" />
+                <data android:mimeType="application/rtf" />
+                <data android:mimeType="text/rtf" />
+                <data android:mimeType="application/vnd.oasis.opendocument.text" />
+                <data android:mimeType="application/vnd.oasis.opendocument.presentation" />
+                <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet" />
+                <data android:mimeType="application/pdf" />
+                <!-- 일러스트레이터(.ai): PDF 호환으로 저장한 파일은 PDF로 연다. 안드로이드는 .ai를 application/postscript로 알리기도 한다. -->
+                <data android:mimeType="application/illustrator" />
+                <data android:mimeType="application/vnd.adobe.illustrator" />
+                <data android:mimeType="application/postscript" />
+                <!-- CAD 도면(DWG·DXF): 앱마다 알리는 형식 이름이 달라 흔한 것을 모두 받는다. -->
+                <data android:mimeType="image/vnd.dwg" />
+                <data android:mimeType="image/x-dwg" />
+                <data android:mimeType="application/acad" />
+                <data android:mimeType="application/x-acad" />
+                <data android:mimeType="application/dwg" />
+                <data android:mimeType="application/x-dwg" />
+                <data android:mimeType="image/vnd.dxf" />
+                <data android:mimeType="image/x-dxf" />
+                <data android:mimeType="application/dxf" />
+                <data android:mimeType="application/x-dxf" />
+                <!-- 형식을 모르는 파일로 넘어오는 경우(일부 HWP). 내용을 보고 판별한다. -->
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+
+            <!-- 공유 메뉴로 보내기 -->
+            <intent-filter android:label="@string/app_name">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/x-hwp" />
+                <data android:mimeType="application/hwp" />
+                <data android:mimeType="application/haansofthwp" />
+                <data android:mimeType="application/vnd.hancom.hwp" />
+                <data android:mimeType="application/x-hwpx" />
+                <data android:mimeType="application/haansofthwpx" />
+                <data android:mimeType="application/vnd.hancom.hwpx" />
+                <data android:mimeType="application/hwp+zip" />
+                <data android:mimeType="application/vnd.ms-excel" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+                <data android:mimeType="application/vnd.ms-excel.sheet.macroenabled.12" />
+                <data android:mimeType="application/vnd.ms-excel.sheet.binary.macroenabled.12" />
+                <data android:mimeType="text/csv" />
+                <data android:mimeType="text/comma-separated-values" />
+                <data android:mimeType="text/tab-separated-values" />
+                <data android:mimeType="application/vnd.ms-powerpoint" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.presentationml.presentation" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.presentationml.slideshow" />
+                <data android:mimeType="application/vnd.ms-powerpoint.presentation.macroenabled.12" />
+                <data android:mimeType="application/msword" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+                <data android:mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.template" />
+                <data android:mimeType="application/vnd.ms-word.document.macroenabled.12" />
+                <data android:mimeType="application/vnd.ms-word.template.macroenabled.12" />
+                <data android:mimeType="application/rtf" />
+                <data android:mimeType="text/rtf" />
+                <data android:mimeType="application/vnd.oasis.opendocument.text" />
+                <data android:mimeType="application/vnd.oasis.opendocument.presentation" />
+                <data android:mimeType="application/vnd.oasis.opendocument.spreadsheet" />
+                <data android:mimeType="application/pdf" />
+                <data android:mimeType="application/illustrator" />
+                <data android:mimeType="application/vnd.adobe.illustrator" />
+                <data android:mimeType="application/postscript" />
+                <data android:mimeType="image/vnd.dwg" />
+                <data android:mimeType="image/x-dwg" />
+                <data android:mimeType="application/acad" />
+                <data android:mimeType="application/x-acad" />
+                <data android:mimeType="application/dwg" />
+                <data android:mimeType="application/x-dwg" />
+                <data android:mimeType="image/vnd.dxf" />
+                <data android:mimeType="image/x-dxf" />
+                <data android:mimeType="application/dxf" />
+                <data android:mimeType="application/x-dxf" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+        </activity>
+
+        <!-- 내보낸 쪽 그림을 카톡 등으로 보낼 때만 쓰는 읽기 전용 주소. 밖에 공개하지 않고 보낼 때 그 그림의 읽기 권한만 넘긴다. -->
+        <provider
+            android:name=".ExportProvider"
+            android:authorities="${applicationId}.export"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+    </application>
+</manifest>

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=8, user-scalable=yes">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: blob:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+  <meta name="color-scheme" content="light dark">
+  <title>be docs</title>
+  <link rel="stylesheet" href="viewer.css">
+  <script src="compat.js"></script>
+  <script type="module" src="viewer.js"></script>
+</head>
+<body>
+  <header class="bar" id="bar" hidden>
+    <div class="bar-row">
+      <span class="bar-title" id="title"></span>
+      <button class="bar-menu" id="menu-btn" type="button" aria-label="메뉴" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
+    </div>
+    <button class="notes-strip" id="notes-strip" type="button" hidden><span class="info-note-icon" aria-hidden="true">i</span><span class="notes-strip-text" id="notes-strip-text"></span><span class="notes-strip-more" id="notes-strip-more"></span></button>
+  </header>
+  <nav class="tabs" id="tabs" hidden></nav>
+  <main id="doc"></main>
+  <!-- 화면에 떠 있는 것들의 층: 두 손가락으로 확대·축소해도 화면 크기 그대로 화면에 붙어 있다(viewer.js followScreen) -->
+  <div class="screen" id="screen">
+    <div class="menu" id="menu" role="menu" hidden>
+      <button class="menu-item" id="find" type="button" role="menuitem" hidden>문서에서 찾기</button>
+      <button class="menu-item" id="menu-export" type="button" role="menuitem" hidden>이미지로 변환…</button>
+      <button class="menu-item" id="menu-original" type="button" role="menuitem" hidden>원본 모양으로 보기</button>
+      <button class="menu-item" id="menu-notes" type="button" role="menuitem" hidden>문서 안내</button>
+      <button class="menu-item" id="menu-share" type="button" role="menuitem" hidden>파일 공유하기…</button>
+      <button class="menu-item" id="menu-download" type="button" role="menuitem" hidden>다운로드</button>
+      <button class="menu-item" id="menu-print" type="button" role="menuitem" hidden>인쇄</button>
+      <button class="menu-item" id="menu-pdf" type="button" role="menuitem" hidden>PDF로 저장</button>
+      <button class="menu-item" id="menu-cad-bg" type="button" role="menuitem" hidden>흰 바탕으로 보기</button>
+      <button class="menu-item" id="open-elsewhere" type="button" role="menuitem" hidden>연결 앱…</button>
+    </div>
+    <section class="notes-panel" id="notes-panel" role="dialog" aria-label="문서 안내" hidden>
+      <p class="notes-panel-title">문서 안내</p>
+      <div id="notes-list"></div>
+      <button class="btn" id="notes-close" type="button">닫기</button>
+    </section>
+    <!-- 파일 공유하기: 보낼 이름을 고친다(확장자는 그대로) -->
+    <section class="notes-panel share-panel" id="share-panel" role="dialog" aria-label="파일 공유하기" hidden>
+      <p class="notes-panel-title">파일 공유하기</p>
+      <label class="share-name"><input id="share-input" type="text" enterkeyhint="send" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="보낼 파일 이름"><span class="share-ext" id="share-ext"></span></label>
+      <p class="share-hint">받는 사람에게 이 이름으로 보내져요.</p>
+      <div class="share-actions">
+        <button class="btn" id="share-cancel" type="button">취소</button>
+        <button class="btn btn-primary" id="share-send" type="button">공유하기</button>
+      </div>
+    </section>
+    <div class="scroller idle" id="pager" hidden>
+      <span class="scroller-label" id="pager-label"></span>
+      <div class="scroller-thumb" id="pager-thumb" role="slider" aria-label="쪽 이동">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 10 12 5.5 16.5 10M7.5 14 12 18.5 16.5 14"/></svg>
+      </div>
+    </div>
+  </div>
+  <section class="notice" id="notice">
+    <p class="notice-text" id="notice-text">불러오는 중…</p>
+  </section>
+</body>
+</html>

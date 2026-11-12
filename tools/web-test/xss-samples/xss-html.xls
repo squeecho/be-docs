@@ -1,0 +1,1 @@
+<html><body><table><tr><td><img src=x onerror="window.__pwned=1"></td><td><script>window.__pwned=1</script></td><td><a href="javascript:window.__pwned=1">a</a></td></tr></table></body></html>
