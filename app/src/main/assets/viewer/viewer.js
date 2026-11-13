@@ -3,7 +3,7 @@
 // 여기서 파일 형식을 판별해 HWP·HWPX는 rhwp, 엑셀·CSV는 SheetJS, PPT·PPTX는 react-pptx,
 // Word(docx·doc)는 react-docx, PDF는 안드로이드 PdfRenderer로 그린다.
 
-import { T, joinList, localizeStatic } from './i18n.js';
+import { T, LANG, joinList, localizeStatic } from './i18n.js';
 
 const MAX_SHEET_ROWS = 3000;
 const MAX_SHEET_COLS = 200;
@@ -135,7 +135,7 @@ const FILE_TONES = {
   doc: 'word', docx: 'word', docm: 'word', dot: 'word', dotx: 'word', dotm: 'word', rtf: 'word', odt: 'word',
   xls: 'sheet', xlsx: 'sheet', xlsm: 'sheet', xlsb: 'sheet', xlt: 'sheet', xltx: 'sheet', ods: 'sheet', csv: 'sheet', tsv: 'sheet',
   ppt: 'slides', pptx: 'slides', pptm: 'slides', pps: 'slides', ppsx: 'slides', pot: 'slides', potx: 'slides', odp: 'slides',
-  pdf: 'pdf',
+  pdf: 'pdf', ai: 'ai', eps: 'ai', dwg: 'cad', dxf: 'cad',
 };
 
 function canElsewhere() {
@@ -189,7 +189,7 @@ function resetView() {
     cadCtl.destroy();
     cadCtl = null;
   }
-  $('notice').classList.remove('home');
+  $('notice').classList.remove('home', 'home-recent');
   clearNotices();
   $('find').hidden = true;
   $('menu-export').hidden = true;
@@ -712,12 +712,109 @@ async function addPdfExtras(pdf, container) {
   }
 }
 
+// 시작 화면의 "최근 문서"(앱이 기억한 목록, 최근 연 순서). 앱 밖(시험 화면 등)이거나 읽지 못하면 빈 목록.
+function readRecents() {
+  try {
+    const list = bridge && bridge.recentList ? JSON.parse(bridge.recentList()) : [];
+    return Array.isArray(list) ? list.filter((r) => r && r.id && r.name).sort((a, b) => (b.opened || 0) - (a.opened || 0)) : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+// "오늘 오후 3:12", "어제 오전 9:05", "11월 3일", "2025년 11월 3일"
+function whenText(ms) {
+  const d = new Date(ms);
+  if (!(ms > 0) || Number.isNaN(d.getTime())) return '';
+  const locale = LANG === 'ko' ? 'ko-KR' : 'en-US';
+  const now = new Date();
+  const day = (x) => `${x.getFullYear()}-${x.getMonth()}-${x.getDate()}`;
+  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  const time = d.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' });
+  if (day(d) === day(now)) return T('오늘 {t}', { t: time });
+  if (day(d) === day(yesterday)) return T('어제 {t}', { t: time });
+  return d.toLocaleDateString(locale, d.getFullYear() === now.getFullYear()
+    ? { month: 'long', day: 'numeric' } : { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+// 목록 고치기를 묻는 작은 창(취소 / 하기). 뒤로 가기·바깥 누르기·취소로 닫힌다(watchBackTargets가 .cell-pop을 닫는다).
+function askRecent(title, text, doLabel, onDo) {
+  document.querySelector('.cell-pop')?.remove();
+  const pop = el('div', 'cell-pop recent-ask');
+  pop.setAttribute('role', 'dialog');
+  pop.append(el('div', 'cell-pop-addr', title), el('div', 'cell-pop-text', text));
+  const cancel = el('button', 'btn', T('취소'));
+  cancel.type = 'button';
+  const go = el('button', 'btn btn-primary', doLabel);
+  go.type = 'button';
+  const foot = popFoot(cancel);
+  foot.append(go);
+  pop.append(foot);
+  // 버튼은 저마다 바로 닫는다(뒤로 가기는 취소를 누른다). 바깥 누르기는 창을 연 누름이 끝난 뒤부터 받는다.
+  const outside = (e) => {
+    if (pop.contains(e.target)) return;
+    e.stopPropagation();
+    close();
+  };
+  const close = () => {
+    pop.remove();
+    document.removeEventListener('click', outside, true);
+  };
+  cancel.addEventListener('click', close);
+  go.addEventListener('click', () => {
+    close();
+    onDo();
+  });
+  $('screen').append(pop);
+  setTimeout(() => {
+    if (pop.isConnected) document.addEventListener('click', outside, true);
+  }, 0);
+  go.focus({ preventScroll: true });
+}
+
+function recentRow(r, rows) {
+  const li = el('li', 'recent-item');
+  li.dataset.id = r.id;
+  const open = el('button', 'recent-open');
+  open.type = 'button';
+  const badge = fileBadge(r.name);
+  badge.classList.add('file-badge-small');
+  const text = el('span', 'recent-text');
+  text.append(el('span', 'recent-name', r.name), el('span', 'recent-meta', [whenText(r.opened), sizeText(r.size)].filter(Boolean).join(' · ')));
+  open.append(badge, text);
+  open.addEventListener('click', () => {
+    if (bridge && bridge.openRecent) bridge.openRecent(r.id);
+  });
+  const more = el('button', 'recent-more');
+  more.type = 'button';
+  more.setAttribute('aria-label', T('{name} 목록에서 빼기', { name: r.name }));
+  more.append(el('span', 'recent-more-dots', '⋮'));
+  more.addEventListener('click', () => askRecent(r.name,
+    r.kind === 'copy'
+      ? T('최근 문서 목록에서 빼요. 이 앱 안에 보관한 사본도 지워요. 받은 앱에 있는 원본은 그대로예요.')
+      : T('최근 문서 목록에서 빼요. 원본 파일은 지워지지 않아요.'),
+    T('목록에서 빼기'), () => {
+      if (bridge && bridge.removeRecent) bridge.removeRecent(r.id);
+      li.remove();
+      if (!rows.children.length) showHome();
+    }));
+  li.append(open, more);
+  return li;
+}
+
 function showHome() {
   $('bar').hidden = true;
   const box = $('notice');
   box.replaceChildren();
   box.hidden = false;
   box.classList.add('home');
+  const recents = readRecents();
+  box.classList.toggle('home-recent', recents.length > 0);
+  if (recents.length) {
+    showRecentHome(box, recents);
+    report({ state: 'home', recent: recents.length });
+    return;
+  }
   const icon = el('img', 'home-icon');
   icon.src = 'app-icon.png';
   icon.alt = '';
@@ -737,6 +834,42 @@ function showHome() {
   report({ state: 'home' });
 }
 
+// 최근 문서가 있으면 앱을 켜자마자 목록부터: 위에 이름·파일 열기, 아래에 최근 연 순서의 목록.
+function showRecentHome(box, recents) {
+  const head = el('div', 'home-head');
+  const icon = el('img', 'home-icon home-icon-small');
+  icon.src = 'app-icon.png';
+  icon.alt = '';
+  const pick = el('button', 'btn btn-primary home-pick', T('파일 열기'));
+  pick.type = 'button';
+  pick.addEventListener('click', () => bridge && bridge.pickFile());
+  head.append(icon, el('h1', null, 'be docs'), pick);
+  const top = el('div', 'recent-top');
+  const clear = el('button', 'home-link recent-clear', T('모두 지우기'));
+  clear.type = 'button';
+  const rows = el('ul', 'recent-list');
+  clear.addEventListener('click', () => askRecent(T('최근 문서 모두 지우기'),
+    T('최근 문서 {n}개를 목록에서 모두 빼요. 이 앱 안에 보관한 사본도 지워요. 원본 파일은 그대로예요.', { n: rows.children.length }),
+    T('모두 지우기'), () => {
+      if (bridge && bridge.clearRecent) bridge.clearRecent();
+      showHome();
+    }));
+  top.append(el('h2', null, T('최근 문서')), clear);
+  for (const r of recents) rows.append(recentRow(r, rows));
+  const section = el('section', 'recent');
+  section.append(top, rows,
+    el('p', 'recent-note', T('다른 앱에서 받은 문서는 목록에서 다시 열 수 있게 이 앱 안에 사본을 보관해요(최근 {n}개·500MB까지). 휴대폰 밖으로는 보내지 않아요.', { n: 30 })));
+  const foot = el('div', 'home-foot');
+  foot.append(el('p', 'home-support', T('지원: 한글 · 워드 · 엑셀 · 파워포인트 · PDF · CAD(dwg, dxf) · 일러스트(ai) · rtf · odt · odp')));
+  const version = bridge && bridge.appVersion ? bridge.appVersion() : '';
+  if (version) foot.append(el('p', 'home-version', T('버전 {v}', { v: version })));
+  const info = el('button', 'home-link', T('앱 정보·오픈소스 라이선스'));
+  info.type = 'button';
+  info.addEventListener('click', showAppInfo);
+  foot.append(info);
+  box.append(head, section, foot);
+}
+
 // 앱 정보: 개인정보 처리(아무것도 내보내지 않음), 한글 문서 형식 출처, 함께 넣은 오픈소스의 라이선스 전문(vendor/*.LICENSE.txt)
 const APP_LICENSES = [
   ['rhwp', 'MIT', 'rhwp'], ['React', 'MIT', 'react'], ['@extend-ai/react-docx', 'MIT', 'react-docx'],
@@ -753,6 +886,7 @@ const APP_SOURCE_URL = 'https://github.com/squeecho/be-docs';
 async function showAppInfo() {
   const items = [
     { where: T('개인정보'), text: T('be docs는 인터넷을 쓰지 않아요(인터넷 권한 없음). 연 문서는 휴대폰 안에서만 읽고 어디로도 보내지 않으며, 사용 기록이나 개인정보를 모으지 않아요. 파일 공유하기·다운로드·이미지로 변환(공유하기·사진첩에 저장)은 직접 고를 때만 해요.') },
+    { where: T('최근 문서'), text: T('시작 화면의 최근 문서 목록은 이 휴대폰의 be docs 안에만 저장돼요. 다른 앱에서 받은 문서는 다시 열 수 있게 사본을 함께 보관하고(최근 30개·500MB까지, 오래된 것부터 자동으로 지움), 백업으로도 내보내지 않아요. 목록의 ⋮나 "모두 지우기"로 언제든 지울 수 있고, 앱을 지우면 함께 지워져요.') },
     { where: T('한글 문서'), text: T('본 제품은 한글과컴퓨터의 한글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.') },
     {
       where: T('be docs 라이선스'),

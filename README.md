@@ -1,4 +1,4 @@
-> **be docs 0.2.97 공개 소스** (GPL-3.0-or-later, `LICENSE`). 스토어에 올리는 판마다 한 커밋으로 올린다(커밋 메시지 "be docs <판> 소스").
+> **be docs 0.2.103 공개 소스** (GPL-3.0-or-later, `LICENSE`). 스토어에 올리는 판마다 한 커밋으로 올린다(커밋 메시지 "be docs <판> 소스").
 > 출시 운영 문서(`store/`)와 디버그 서명 키는 넣지 않았다. 디버그 빌드는 안드로이드 기본 디버그 키로 서명된다.
 > 빌드 전에 `scripts/fetch-vendor.sh`로 화면 라이브러리(`app/src/main/assets/viewer/vendor/`)를 받는다.
 
@@ -41,7 +41,11 @@ RTF·ODT·ODP·웹 페이지로 저장된 .doc 같은 드문 형식은 **간단 
 
 - **카톡**: 파일을 받은 뒤 열 때 나오는 앱 목록에서 **be docs**를 고른다.
   목록에 없으면 파일을 길게 눌러 **공유 → be docs**를 쓴다.
-- **앱 아이콘**: 눌러서 **파일 열기**로 휴대폰에 있는 문서를 고른다.
+- **앱 아이콘**: 눌러서 **파일 열기**로 휴대폰에 있는 문서를 고른다. 전에 연 문서가 있으면 앱을 켜자마자 **최근 문서** 목록(최근 연 순서)이 나오고,
+  누르면 바로 다시 열린다. 파일 고르기로 연 문서는 원본을(읽기 권한을 계속 받아 둠), 카톡·메일 등에서 받은 문서는 앱 안에 둔 사본을 연다
+  (그 앱이 준 권한은 화면을 닫으면 끝나서. 열 때 받아 둔 캐시 사본에 하드 링크를 걸어 즉시·자리 더 안 쓰고, 같은 내용은 하나만).
+  최근 30개·사본 합계 500MB까지(넘으면 오래된 것부터 지움), ⋮로 하나씩·**모두 지우기**로 전부 뺄 수 있다. 앱 백업이 꺼져 있어 사본이 백업으로 나가지 않는다.
+  원본이 옮겨졌거나 지워진 줄은 열 때 알리고 목록에서 뺀다.
 - 두 손가락으로 확대·축소. PDF·한글은 앱이 쪽 폭을 직접 바꿔 40%~800%를 손을 떼지 않고 한 동작으로 오간다(화면 폭보다 작게 줄여
   여러 쪽을 한눈에 보고, 키우면 옆으로도 스크롤한다. 95~105%에서 손을 떼면 화면 폭에 맞춘다). 분할 화면(폴드 안쪽 화면을 나눠 씀)에서는
   화면을 다 쓸 때의 800% 크기까지 키울 수 있다(창 폭 기준이면 절반 크기에서 멈췄다. 앱이 그 폭을 알려 줌, 최대 2400%).
@@ -236,6 +240,7 @@ app/src/main/java/.../DocSession.java      받은 파일을 캐시에 복사, PD
 app/src/main/java/.../ImageExport.java     이미지로 변환: 화면이 넘긴 그림을 사진첩(MediaStore)에 저장하거나 보내기용으로 캐시에 모음
 app/src/main/java/.../ExportProvider.java  보내기용 그림·이름 바꾼 공유 문서의 읽기 전용 주소(content://…export/이름, …/share/번호/이름, 밖에 공개하지 않음)
 app/src/main/java/.../ShareCopy.java        파일 공유하기에서 이름을 바꿀 때: 받아 둔 사본을 새 이름으로(하드 링크, 하루 지나면 정리)
+app/src/main/java/.../RecentDocs.java       시작 화면의 최근 문서 목록(files/recent: 목록 JSON + 다른 앱에서 받은 문서의 사본, 30개·500MB)
 app/src/main/assets/viewer/                 화면(HTML·JS): 형식 판별, HWP(rhwp)·엑셀(SheetJS)·PPT(react-pptx)·워드(react-docx)·PDF(pdf.js) 렌더링
   i18n.js                                   화면 글자 언어(한국어 원문을 열쇠로 영어를 찾음, tools/web-test/i18n-test.mjs가 빠짐을 잡음)
   simple-view.js                            간단 보기(RTF·ODT·ODP·Word 2003 XML·Word 2~95 → 글자·표·그림)
@@ -323,7 +328,7 @@ CI는 GitHub 비밀값 `RELEASE_*`가 있으면 그 키로 서명한 APK·번들
 
 be docs는 **GNU GPL 3판 또는 그 이후 판(GPL-3.0-or-later)** 으로 배포하는 자유 소프트웨어다(전문: `LICENSE`).
 CAD 도면 엔진 LibreDWG(GPL-3.0)를 함께 넣기 때문이다. 앱의 "앱 정보·오픈소스 라이선스"에 이 내용과 소스 코드 주소를 적었다.
-소스는 공개 저장소 https://github.com/squeecho/be-docs 에 **스토어에 올리는 판마다** 올린다(`scripts/publish-source.sh`, 판 이름으로 태그).
+소스는 공개 저장소 https://github.com/squeecho/be-docs 에 **스토어에 올리는 판마다** 올린다(`scripts/publish-source.sh`, 커밋 메시지 "be docs <판> 소스").
 이 개발 저장소(이력·출시 문서 `store/`·디버그 키)는 비공개로 둔다. GPL은 배포한 판의 소스를 요구하고 개발 이력은 요구하지 않는다.
 Copyright (C) 2026 krayon studios. 이 프로그램은 쓸모 있기를 바라며 배포하지만 상품성이나 특정 목적 적합성을 포함해 **아무런 보증도 하지 않는다**.
 

@@ -745,6 +745,87 @@ public class DeviceMatrixTest {
         }
     }
 
+    @Test
+    public void recentDocumentsReopenFromHome() throws Exception {
+        // 다른 앱(카톡 등)이 넘긴 문서와 시작 화면에서 고른 문서가 "최근 문서"에 최근 연 순서로 남고, 앱만 켜도 목록이 나오며,
+        // 목록에서 다시 열린다(다른 앱이 넘긴 문서는 앱 안 사본으로). 다시 연 문서는 맨 위로, 빼면 사본도 지워진다.
+        // 시험 제공자는 계속 읽을 권한(takePersistableUriPermission)을 줄 수 없어 고른 문서도 사본으로 기억된다.
+        android.content.Context ctx = ApplicationProvider.getApplicationContext();
+        RecentDocs.awaitIdle(); // 앞 시험에서 연 문서의 기록이 끝난 뒤에 비운다
+        RecentDocs.clear(ctx);
+        try {
+            Intent view = new Intent(Intent.ACTION_VIEW)
+                    .setDataAndType(TestFilesProvider.uri("file", "matrix/excel2007.xlsx"),
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    .setClass(ctx, ViewerActivity.class);
+            try (ActivityScenario<ViewerActivity> scenario = ActivityScenario.launch(view)) {
+                String report = await(scenario, "rendered", "error");
+                assertTrue(report, report.contains("\"state\":\"rendered\""));
+                SystemClock.sleep(300);
+                RecentDocs.awaitIdle();
+            }
+            String afterView = RecentDocs.listJson(ctx);
+            assertTrue("다른 앱에서 연 문서가 최근 문서에 없다: " + afterView,
+                    afterView.contains("excel2007.xlsx") && afterView.contains("\"kind\":\"copy\""));
+            String excelId = new org.json.JSONArray(afterView).getJSONObject(0).getString("id");
+            assertTrue("앱 안 사본이 없다", RecentDocs.copyFile(ctx, excelId).isFile());
+
+            try (ActivityScenario<ViewerActivity> scenario = ActivityScenario.launch(ViewerActivity.class)) {
+                String home = await(scenario, "home");
+                assertTrue("앱을 켜면 최근 문서 1개가 보여야 한다: " + home, home.contains("\"recent\":1"));
+                scenario.onActivity(a -> a.openPickedForTest(TestFilesProvider.uri("file", "matrix/csv-utf8.csv"), "text/csv"));
+                SystemClock.sleep(500);
+                String picked = await(scenario, "rendered", "error");
+                assertTrue(picked, picked.contains("\"state\":\"rendered\""));
+                SystemClock.sleep(300);
+                RecentDocs.awaitIdle();
+                pressBack(scenario);
+                String home2 = await(scenario, "home");
+                assertTrue("고른 문서까지 2개여야 한다: " + home2, home2.contains("\"recent\":2"));
+                ViewerActivity[] activity = {null};
+                scenario.onActivity(a -> activity[0] = a);
+                String names = "(function(){return [].map.call(document.querySelectorAll('.recent-name'),function(x){return x.textContent;}).join('|');})()";
+                String order = activity[0].evaluateJavascriptForTest(names, 5000);
+                assertTrue("최근 연 순서가 아니다: " + order, order.startsWith("\"csv-utf8.csv|excel2007.xlsx"));
+                screenshot("recent-home");
+
+                // 목록의 두 번째(다른 앱에서 연 엑셀)를 다시 연다: 원래 앱의 권한 없이 앱 안 사본으로 열린다
+                activity[0].evaluateJavascriptForTest("document.querySelectorAll('.recent-open')[1].click()", 5000);
+                SystemClock.sleep(500);
+                String again = await(scenario, "rendered", "error");
+                assertTrue("목록에서 다시 열지 못했다: " + again,
+                        again.contains("\"state\":\"rendered\"") && again.contains("\"kind\":\"sheet\""));
+                SystemClock.sleep(300);
+                RecentDocs.awaitIdle();
+                pressBack(scenario);
+                await(scenario, "home");
+                scenario.onActivity(a -> activity[0] = a);
+                String order2 = activity[0].evaluateJavascriptForTest(names, 5000);
+                assertTrue("다시 연 문서가 맨 위로 오지 않았다: " + order2, order2.startsWith("\"excel2007.xlsx|csv-utf8.csv"));
+
+                // 맨 위 줄의 ⋮ → "목록에서 빼기": 목록과 앱 안 사본에서 함께 지워진다
+                activity[0].evaluateJavascriptForTest("document.querySelector('.recent-item .recent-more').click()", 5000);
+                SystemClock.sleep(500);
+                activity[0].evaluateJavascriptForTest("document.querySelector('.recent-ask .btn-primary').click()", 5000);
+                SystemClock.sleep(500);
+                String left = RecentDocs.listJson(ctx);
+                assertFalse("뺀 문서가 목록에 남았다: " + left, left.contains("excel2007.xlsx"));
+                assertTrue("남은 문서가 사라졌다: " + left, left.contains("csv-utf8.csv"));
+                assertFalse("뺀 문서의 사본이 남았다", RecentDocs.copyFile(ctx, excelId).exists());
+            }
+        } finally {
+            RecentDocs.clear(ctx);
+        }
+    }
+
+    private static void pressBack(ActivityScenario<ViewerActivity> scenario) {
+        scenario.onActivity(a -> {
+            a.dispatchKeyEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_BACK));
+            a.dispatchKeyEvent(new android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_BACK));
+        });
+        SystemClock.sleep(500);
+    }
+
     // 지금 앞에 떠 있는 뷰어 화면(not이 아닌 것)을 기다린다.
     private static ViewerActivity resumedViewer(ViewerActivity not) {
         ViewerActivity[] found = {null};

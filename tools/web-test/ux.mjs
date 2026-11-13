@@ -564,7 +564,90 @@ for (const file of ['word.rtf', 'writer.odt']) {
   });
 }
 
-await check('시작 화면의 앱 정보: 개인정보 안내·한글 문서 출처·be docs GPL 안내(소스 주소)·오픈소스 라이선스 전문 13개(LibreDWG 포함)', async () => {
+// 최근 문서: 앱만 켜도 목록부터(최근 연 순서, 앱이 순서를 섞어 줘도), 누르면 그 문서를 열고, ⋮로 하나 빼기(뒤로 가기·취소는 그대로),
+// 모두 지우기. 다 비면 원래 시작 화면. 목록이 없으면(앱 밖·처음) 원래 시작 화면 그대로.
+await check('시작 화면 최근 문서: 최근 연 순서 목록·누르면 열기·⋮ 빼기(뒤로 가기는 취소)·모두 지우기·비면 원래 시작 화면', async () => {
+  await fetch(`${base}/__set`);
+  const now = Date.now();
+  const list = [
+    { id: '00000000000000a2', name: '공사 일정표.hwp', size: 1203456, opened: now - 3 * 3600e3, kind: 'pick' },
+    { id: '00000000000000a1', name: '견적서.xlsx', size: 284211, opened: now - 60e3, kind: 'copy' },
+    { id: '00000000000000a3', name: '1층 평면도.dwg', size: 4567890, opened: now - 40 * 86400e3, kind: 'copy' },
+  ];
+  const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true });
+  const page = await ctx.newPage();
+  await page.addInitScript((list) => {
+    window.__r = [];
+    window.__calls = [];
+    let items = list.slice();
+    window.DocViewer = {
+      report: (s) => window.__r.push(JSON.parse(s)), pickFile: () => window.__calls.push('pick'), canOpenElsewhere: () => false,
+      fontScale: () => 1, setBackTarget() {}, appVersion: () => '0.2.0 (test)',
+      recentList: () => JSON.stringify(items),
+      openRecent: (id) => window.__calls.push(`open:${id}`),
+      removeRecent: (id) => { window.__calls.push(`remove:${id}`); items = items.filter((x) => x.id !== id); },
+      clearRecent: () => { window.__calls.push('clear'); items = []; },
+    };
+  }, list);
+  await page.goto(`${base}/viewer/index.html`);
+  await waitState(page, ['home']);
+  const bad = [];
+  let step = '처음';
+  try {
+  const names = () => page.$$eval('.recent-name', (xs) => xs.map((x) => x.textContent));
+  const first = await names();
+  if (first.join('|') !== '견적서.xlsx|공사 일정표.hwp|1층 평면도.dwg') bad.push(`순서 ${first.join('|')}`);
+  const home = await page.evaluate(() => window.__r.find((r) => r.state === 'home'));
+  if (home.recent !== 3) bad.push(`보고 ${JSON.stringify(home)}`);
+  const meta = await page.$eval('.recent-item .recent-meta', (x) => x.textContent);
+  if (!/^오늘 .+ · 278KB$/.test(meta)) bad.push(`날짜·크기 ${meta}`);
+  if (await page.$('.home .notice-sub')) bad.push('목록이 있는데 긴 소개 글이 그대로');
+  step = '목록 누르기';
+  await page.click('.recent-item:nth-child(2) .recent-open');
+  await page.click('.home-pick');
+  // ⋮ → 뒤로 가기: 빼지 않고 닫힘
+  step = '세 번째 ⋮';
+  await page.click('.recent-item:nth-child(3) .recent-more');
+  await page.waitForSelector('.recent-ask');
+  if (!(await page.textContent('.recent-ask')).includes('사본도 지워요')) bad.push('사본 안내 없음(copy)');
+  await page.evaluate(() => window.beDocsBack());
+  await page.waitForTimeout(200);
+  if (await page.$('.recent-ask')) bad.push('뒤로 가기로 안 닫힘');
+  // 창이 열린 바로 그 순간(같은 작업 안)에 뒤로 가기를 눌러도 닫히고, 다음 누름을 삼키지 않는다
+  await page.evaluate(() => { document.querySelector('.recent-item:nth-child(3) .recent-more').click(); window.beDocsBack(); });
+  await page.waitForTimeout(200);
+  if (await page.$('.recent-ask')) bad.push('뒤로 가기로 안 닫힘');
+  // ⋮ → 목록에서 빼기
+  step = '두 번째 ⋮';
+  await page.click('.recent-item:nth-child(2) .recent-more');
+  await page.waitForSelector('.recent-ask');
+  if (!(await page.textContent('.recent-ask')).includes('원본 파일은 지워지지 않아요')) bad.push('원본 안내 없음(pick)');
+  await page.click('.recent-ask .btn-primary');
+  await page.waitForTimeout(200);
+  const left = await names();
+  if (left.join('|') !== '견적서.xlsx|1층 평면도.dwg') bad.push(`뺀 뒤 ${left.join('|')}`);
+  // 모두 지우기 → 원래 시작 화면
+  step = '모두 지우기';
+  await page.click('.recent-clear');
+  await page.waitForSelector('.recent-ask');
+  if (!(await page.textContent('.recent-ask')).includes('2개')) bad.push('모두 지우기 개수 안내 없음');
+  await page.click('.recent-ask .btn-primary');
+  await page.waitForTimeout(300);
+  const after = await page.evaluate(() => ({ list: !!document.querySelector('.recent-list'), hero: !!document.querySelector('.home .notice-sub'), cls: document.getElementById('notice').className }));
+  if (after.list || !after.hero || /home-recent/.test(after.cls)) bad.push(`비운 뒤 ${JSON.stringify(after)}`);
+  const calls = await page.evaluate(() => window.__calls);
+  if (calls.join(',') !== 'open:00000000000000a2,pick,remove:00000000000000a2,clear') bad.push(`호출 ${calls.join(',')}`);
+  } catch (e) {
+    // 어느 단계에서 멈췄는지와 그때 화면을 남긴다
+    if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/recent-home-fail.png` }).catch(() => {});
+    const calls = await page.evaluate(() => window.__calls).catch(() => []);
+    bad.push(`${step}에서 멈춤(${String(e.message).split('\n')[0]}) 호출 ${calls.join(',')}`);
+  }
+  await ctx.close();
+  return bad.join(' / ');
+});
+
+await check('시작 화면의 앱 정보: 개인정보·최근 문서 보관 안내·한글 문서 출처·be docs GPL 안내(소스 주소)·오픈소스 라이선스 전문 13개(LibreDWG 포함)', async () => {
   await fetch(`${base}/__set`);
   const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true });
   const page = await ctx.newPage();
@@ -580,15 +663,16 @@ await check('시작 화면의 앱 정보: 개인정보 안내·한글 문서 출
     const labels = [...document.querySelectorAll('.list-pop .cell-pop-label')].map((x) => x.textContent);
     const texts = [...document.querySelectorAll('.list-pop .cell-pop-text')].map((x) => x.textContent);
     return {
-      labels, short: texts.filter((t) => t.length < 200).length, privacy: /인터넷을 쓰지 않아요/.test(texts[0] || ''), hwp: /공개 문서를 참고하여/.test(texts[1] || ''),
-      gpl: /GPL\) 3판 또는 그 이후 판/.test(texts[2] || '') && /보증도 하지 않아요/.test(texts[2] || '') && (texts[2] || '').includes('https://github.com/squeecho/be-docs'),
+      labels, short: texts.filter((t) => t.length < 200).length, privacy: /인터넷을 쓰지 않아요/.test(texts[0] || ''), hwp: /공개 문서를 참고하여/.test(texts[2] || ''),
+      recent: /이 휴대폰의 be docs 안에만/.test(texts[1] || '') && /백업으로도 내보내지 않아요/.test(texts[1] || ''),
+      gpl: /GPL\) 3판 또는 그 이후 판/.test(texts[3] || '') && /보증도 하지 않아요/.test(texts[3] || '') && (texts[3] || '').includes('https://github.com/squeecho/be-docs'),
       libredwg: texts[labels.findIndex((l) => l.startsWith('LibreDWG'))]?.includes('GNU GENERAL PUBLIC LICENSE') || false,
     };
   });
   await ctx.close();
-  // 라이선스 전문은 길다(짧으면 파일을 못 읽은 것). 앞 세 개(개인정보·한글 출처·be docs 사용권)만 짧다.
-  return r.labels.length === 16 && r.short === 3 && r.privacy && r.hwp && r.gpl && r.libredwg ? ''
-    : JSON.stringify({ n: r.labels.length, short: r.short, privacy: r.privacy, hwp: r.hwp, gpl: r.gpl, libredwg: r.libredwg });
+  // 라이선스 전문은 길다(짧으면 파일을 못 읽은 것). 앞 네 개(개인정보·최근 문서·한글 출처·be docs 사용권)만 짧다.
+  return r.labels.length === 17 && r.short === 4 && r.privacy && r.recent && r.hwp && r.gpl && r.libredwg ? ''
+    : JSON.stringify({ n: r.labels.length, short: r.short, privacy: r.privacy, recent: r.recent, hwp: r.hwp, gpl: r.gpl, libredwg: r.libredwg });
 });
 
 // 영어 화면: 휴대폰(앱) 언어가 한국어가 아니면 앱 글자(메뉴·안내·버튼·오류·비밀번호·시작 화면)에 한국어가 남지 않는다.

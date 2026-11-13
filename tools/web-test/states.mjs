@@ -48,6 +48,7 @@ async function tenPagePdf() {
 
 const FILES = [
   { file: null, kind: 'home' },
+  { file: null, kind: 'home', recents: true },
   { file: 'excel-rich.xlsx', kind: 'sheet' },
   { file: 'csv-utf8.csv', kind: 'sheet' },
   { file: 'pdf-mixed-sizes.pdf', kind: 'pages', find: '견적' },
@@ -59,7 +60,20 @@ const FILES = [
   { file: 'slides-extras.pptx', kind: 'slides' },
   { file: 'word.rtf', kind: 'simple' },
   { file: 'cad-2018.dwg', kind: 'cad' },
-].filter((f) => !process.env.ONLY || process.env.ONLY.split(',').some((o) => (f.file || 'home').includes(o)));
+].filter((f) => !process.env.ONLY || process.env.ONLY.split(',').some((o) => (f.file || (f.recents ? 'home-recent' : 'home')).includes(o)));
+
+// 시작 화면의 최근 문서(긴 이름·여러 형식·오늘/어제/예전 날짜)
+const RECENTS = (() => {
+  const now = Date.now();
+  return [
+    { id: '0000000000000001', name: '2026 매장 리뉴얼 견적서_최종_수정본(거래처 확인용).xlsx', size: 284211, opened: now - 5 * 60e3, kind: 'copy' },
+    { id: '0000000000000002', name: '공사 일정표.hwp', size: 1203456, opened: now - 3 * 3600e3, kind: 'pick' },
+    { id: '0000000000000003', name: '1층 평면도.dwg', size: 4567890, opened: now - 26 * 3600e3, kind: 'copy' },
+    { id: '0000000000000004', name: 'Quarterly_Business_Review_Presentation_FINAL_v12.pptx', size: 9876543, opened: now - 5 * 86400e3, kind: 'copy' },
+    { id: '0000000000000005', name: 'contract.pdf', size: 345678, opened: now - 400 * 86400e3, kind: 'pick' },
+    { id: '0000000000000006', name: '메모.txt', size: 1234, opened: now - 8 * 86400e3, kind: 'copy' },
+  ];
+})();
 
 const fails = [];
 let states = 0;
@@ -213,6 +227,36 @@ const INSPECT = () => {
         contrast('쪽 표시', document.getElementById('pager-label'));
       }
     }
+    if (what.recentHome) {
+      for (const [label, sel] of [['제목', '#notice h1'], ['최근 문서', '.recent-top h2'], ['모두 지우기', '.recent-clear'], ['문서 이름', '.recent-item .recent-name'], ['날짜·크기', '.recent-item .recent-meta'], ['형식', '.recent-item .file-badge-ext']]) {
+        const e = document.querySelector(sel);
+        if (!e || !shown(e)) { out.push(`${label} 없음`); continue; }
+        inScreen(label, e);
+        contrast(label, e);
+      }
+      const pick = document.querySelector('.home-pick');
+      if (!pick) out.push('파일 열기 버튼 없음');
+      else { inScreen('파일 열기', pick); hit('파일 열기', pick); contrast('파일 열기', pick); }
+      for (const [label, sel] of [['첫 문서', '.recent-open'], ['⋮', '.recent-more'], ['모두 지우기', '.recent-clear']]) {
+        const e = document.querySelector(sel);
+        if (e) {
+          hit(label, e);
+          const r = e.getBoundingClientRect();
+          if (r.width < 40 || r.height < 40) out.push(`${label} 누를 곳이 작음 ${Math.round(r.width)}×${Math.round(r.height)}`);
+        }
+      }
+      for (const n of document.querySelectorAll('.recent-name')) if (n.scrollWidth > n.clientWidth + 1) out.push(`이름이 옆으로 넘침 "${n.textContent.slice(0, 12)}"`);
+      const rows = [...document.querySelectorAll('.recent-item')];
+      if (rows.length && scr(rows[0]).y > H * 0.45) out.push(`목록이 화면 아래쪽에서 시작 y=${Math.round(scr(rows[0]).y)}/${Math.round(H)}`);
+    }
+    if (what.recentFoot) {
+      for (const [label, sel] of [['보관 안내', '.recent-note'], ['지원 형식', '.home-support'], ['버전', '.home-foot .home-version'], ['앱 정보', '.home-foot .home-link']]) {
+        const e = document.querySelector(sel);
+        if (!e || !shown(e)) { out.push(`${label} 없음`); continue; }
+        inScreen(label, e);
+        contrast(label, e);
+      }
+    }
     if (what.home) {
       const texts = [...document.querySelectorAll('#notice h1, #notice .notice-sub, #notice .home-link, #notice .home-version')].filter(shown);
       if (texts.length < 3) out.push(`시작 화면 글이 모자람(${texts.length})`);
@@ -230,7 +274,7 @@ const INSPECT = () => {
 };
 
 async function run(spec, screen, dark, fontScale) {
-  const label = `${spec.file ? path.basename(spec.file) : '시작 화면'} · ${screen.name}${dark ? ' · 어두움' : ''}${fontScale !== 1 ? ` · 글자 ${fontScale}배` : ''}`;
+  const label = `${spec.file ? path.basename(spec.file) : spec.recents ? '시작 화면(최근 문서)' : '시작 화면'} · ${screen.name}${dark ? ' · 어두움' : ''}${fontScale !== 1 ? ` · 글자 ${fontScale}배` : ''}`;
   if (spec.file) {
     const f = path.isAbsolute(spec.file) ? spec.file : path.join(dir, spec.file);
     await fetch(`${base}/__set?` + new URLSearchParams({ f, name: path.basename(f) }));
@@ -241,7 +285,7 @@ async function run(spec, screen, dark, fontScale) {
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 120)));
-  await page.addInitScript(({ scale }) => {
+  await page.addInitScript(({ scale, recents }) => {
     window.__r = [];
     window.__back = [];
     window.DocViewer = {
@@ -249,10 +293,11 @@ async function run(spec, screen, dark, fontScale) {
       pickFile() {}, openElsewhere() {}, canOpenElsewhere: () => true, canShare: () => true, shareFile() {}, shareFileAs() {}, canDownload: () => true, download() {},
       fontScale: () => scale, setBackTarget(open) { window.__back.push(open); }, showScrollbars() {},
       zoomBy(f) { window.__zoomReq = f; },
+      recentList: () => JSON.stringify(recents || []), openRecent() {}, removeRecent() {}, clearRecent() {},
       appVersion: () => '0.2.0 (test)',
       exportBegin() { return true; }, exportPart() { return true; }, exportEnd() { return 1; }, exportCancel() {},
     };
-  }, { scale: fontScale });
+  }, { scale: fontScale, recents: spec.recents ? RECENTS : null });
   await page.addInitScript(INSPECT);
   const problems = [];
   const shot = async (name) => {
@@ -293,7 +338,23 @@ async function run(spec, screen, dark, fontScale) {
     const doc = spec.kind !== 'home';
     const noOverflow = spec.kind !== 'sheet';
 
-    if (!doc) {
+    if (!doc && spec.recents) {
+      await inspect('시작(최근 문서)', { noOverflow: true, recentHome: true });
+      await shot('시작_최근문서');
+      // ⋮ → 빼기 묻는 창: 화면 안, 버튼 눌림, 뒤로 가기로 닫힘
+      await page.evaluate(() => document.querySelector('.recent-more')?.click());
+      await page.waitForTimeout(400);
+      await inspect('최근 문서 빼기', { pop: true });
+      await shot('최근문서_빼기');
+      if (await lastBack() !== true) problems.push('[최근 문서 빼기] 뒤로 가기 대상을 알리지 않음');
+      await goBack();
+      await page.waitForTimeout(300);
+      if (await page.evaluate(() => !!document.querySelector('#screen > .cell-pop'))) problems.push('[최근 문서 빼기] 뒤로 가기로 안 닫힘');
+      // 끝까지 내려도(설명·버전·앱 정보) 화면 안
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await page.waitForTimeout(300);
+      await inspect('시작(최근 문서) 끝', { noOverflow: true, recentFoot: true });
+    } else if (!doc) {
       await inspect('시작', { noOverflow: true, home: true });
       await shot('시작');
       await page.evaluate(() => document.querySelector('.home-link')?.click());

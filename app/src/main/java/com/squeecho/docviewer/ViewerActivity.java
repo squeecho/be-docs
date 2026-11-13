@@ -84,6 +84,7 @@ public class ViewerActivity extends Activity {
     private static final String STATE_FILE = "doc.file";
     private static final String STATE_NAME = "doc.name";
     private static final String STATE_BACK_HOME = "doc.backHome";
+    private static final String STATE_RECENT = "doc.recent";
 
     private static final String[] PICK_TYPES = {
             "application/x-hwp", "application/haansofthwp", "application/vnd.hancom.hwp",
@@ -114,6 +115,12 @@ public class ViewerActivity extends Activity {
     private volatile Future<DocSession> session;
     private volatile Uri sourceUri;
     private volatile String sourceType;
+    // 시작 화면 "최근 문서"(RecentDocs): 목록에서 다시 연 문서의 id, 파일 고르기로 연 문서인지, 이번에 연 문서를 기록했는지.
+    // 화면에 그려지면(rendered·password) 한 번 기록한다. openGen: 여는 중에 다른 문서로 바뀌었는지 가린다.
+    private volatile String recentId;
+    private volatile boolean picked;
+    private final AtomicBoolean recorded = new AtomicBoolean();
+    private volatile int openGen;
     private final List<String> reports = new CopyOnWriteArrayList<>();
     // 쪽을 그림으로 내보내는 중인 일(화면 스크립트의 앱 호출 스레드에서 쓴다)
     private final Object exportLock = new Object();
@@ -178,6 +185,8 @@ public class ViewerActivity extends Activity {
             sourceType = intent.getType();
             session = CompletableFuture.completedFuture(restored);
             backToHome = savedInstanceState.getBoolean(STATE_BACK_HOME);
+            recentId = savedInstanceState.getString(STATE_RECENT);
+            if (recentId != null) restoreRecentHandoff(restored);
             showViewer();
         } else {
             openFromIntent(getIntent());
@@ -194,6 +203,7 @@ public class ViewerActivity extends Activity {
             out.putString(STATE_FILE, s.file.getAbsolutePath());
             out.putString(STATE_NAME, s.name);
             out.putBoolean(STATE_BACK_HOME, backToHome);
+            if (recentId != null) out.putString(STATE_RECENT, recentId);
         } catch (ExecutionException | InterruptedException ignored) {
             // 열지 못한 문서는 저장할 것이 없다.
         }
@@ -315,16 +325,99 @@ public class ViewerActivity extends Activity {
 
     /** fromHome: 시작 화면의 "파일 열기"로 고른 문서. 뒤로 가기는 앱을 나가지 않고 시작 화면으로 돌아간다. */
     private void open(Uri uri, String type, boolean fromHome) {
+        open(uri, type, fromHome, fromHome, null);
+    }
+
+    /** pickedFile: 파일 고르기(ACTION_OPEN_DOCUMENT)로 받은 주소. recent: 최근 문서 목록에서 다시 연 줄의 id. */
+    private void open(Uri uri, String type, boolean fromHome, boolean pickedFile, String recent) {
+        beginOpen(uri, type, fromHome && uri != null, pickedFile, recent);
+        session = uri == null ? null : io.submit(() -> DocSession.open(getApplicationContext(), uri));
+        showViewer();
+    }
+
+    private void beginOpen(Uri uri, String type, boolean home, boolean pickedFile, String recent) {
         closeSession();
-        backToHome = fromHome && uri != null;
+        openGen++;
+        backToHome = home;
         sourceUri = uri;
         sourceType = type;
+        picked = pickedFile;
+        recentId = recent;
+        recorded.set(false);
         reports.clear();
         rendererLosses = 0;
         rendererFailed = false;
         reloadOnStart = false;
-        session = uri == null ? null : io.submit(() -> DocSession.open(getApplicationContext(), uri));
+    }
+
+    /** 시작 화면 "최근 문서"의 한 줄을 연다. 고른 파일은 원본을, 다른 앱에서 받은 문서는 앱 안의 사본을. */
+    private void openRecent(String id) {
+        RecentDocs.Entry e = RecentDocs.get(this, id);
+        if (e == null) {
+            open(null, null, false);
+            return;
+        }
+        if (RecentDocs.KIND_PICK.equals(e.kind)) {
+            open(Uri.parse(e.uri), e.mime, true, false, e.id);
+            return;
+        }
+        beginOpen(null, e.mime, true, false, e.id);
+        Context app = getApplicationContext();
+        int gen = openGen;
+        session = io.submit(() -> {
+            DocSession s = DocSession.fromRecent(app, RecentDocs.copyFile(app, e.id), e.name);
+            if (gen == openGen) sourceUri = handoffUriFor(app, s);
+            return s;
+        });
         showViewer();
+    }
+
+    /** 다른 앱으로 열기·공유하기에 넘길 주소(앱 안 사본을 원래 이름으로 내보내는 주소). 못 만들면 null(그 버튼만 숨는다). */
+    private static Uri handoffUriFor(Context app, DocSession s) {
+        try {
+            return ExportProvider.shareUri(ExportProvider.authority(app), ShareCopy.make(app, s.file, s.name));
+        } catch (IOException | RuntimeException ex) {
+            Log.w(TAG, "최근 문서를 넘길 주소를 만들지 못함", ex);
+            return null;
+        }
+    }
+
+    /** 시스템이 앱을 정리했다 다시 만든 경우: 최근 문서에서 연 문서면 넘길 주소를 다시 마련한다. */
+    private void restoreRecentHandoff(DocSession restored) {
+        RecentDocs.Entry e = RecentDocs.get(this, recentId);
+        if (e == null) return;
+        sourceType = e.mime;
+        if (RecentDocs.KIND_PICK.equals(e.kind)) {
+            sourceUri = Uri.parse(e.uri);
+            return;
+        }
+        Context app = getApplicationContext();
+        int gen = openGen;
+        io.execute(() -> {
+            Uri u = handoffUriFor(app, restored);
+            if (gen == openGen) sourceUri = u;
+        });
+    }
+
+    /** 문서가 화면에 그려지면(또는 비밀번호를 묻게 되면) 최근 문서에 한 번 기록한다. */
+    private void recordRecent() {
+        DocSession s = openedSession();
+        if (s == null || !recorded.compareAndSet(false, true)) return;
+        Context app = getApplicationContext();
+        String id = recentId;
+        if (id != null) {
+            RecentDocs.touch(app, id);
+            return;
+        }
+        Uri uri = sourceUri;
+        if (uri == null) return;
+        String mime = typeForHandoff(uri);
+        try {
+            if (picked && RecentDocs.isContent(uri)) RecentDocs.recordPicked(app, uri, s.name, mime, s.file);
+            else RecentDocs.recordCopy(app, s.file, s.name, mime);
+        } catch (RuntimeException e) {
+            Log.w(TAG, "최근 문서에 기록하지 못함", e);
+        }
     }
 
     private void releaseSession() {
@@ -913,6 +1006,30 @@ public class ViewerActivity extends Activity {
                     || json.contains("\"state\":\"password\"") || json.contains("\"state\":\"home\""))) {
                 stopEscapeWatch();
             }
+            if (json != null && (json.contains("\"state\":\"rendered\"") || json.contains("\"state\":\"password\""))) {
+                recordRecent();
+            }
+        }
+
+        /** 시작 화면의 최근 문서 목록(JSON, 최근 연 순서). */
+        @JavascriptInterface
+        public String recentList() {
+            return RecentDocs.listJson(getApplicationContext());
+        }
+
+        @JavascriptInterface
+        public void openRecent(String id) {
+            if (RecentDocs.validId(id)) runOnUiThread(() -> ViewerActivity.this.openRecent(id));
+        }
+
+        @JavascriptInterface
+        public void removeRecent(String id) {
+            if (RecentDocs.validId(id)) RecentDocs.remove(getApplicationContext(), id);
+        }
+
+        @JavascriptInterface
+        public void clearRecent() {
+            RecentDocs.clear(getApplicationContext());
         }
 
         @JavascriptInterface
@@ -1213,6 +1330,12 @@ public class ViewerActivity extends Activity {
                         + (rendererFailed ? ",\"rendererFailed\":true" : "") + "}");
             } catch (ExecutionException e) {
                 Log.w(TAG, "open failed", e.getCause());
+                String gone = recentId;
+                if (gone != null && (e.getCause() instanceof FileNotFoundException || e.getCause() instanceof SecurityException)) {
+                    // 최근 문서의 원본이 옮겨졌거나 지워졌다(또는 고른 파일의 권한이 풀렸다): 목록에서 빼고 그렇게 알린다.
+                    RecentDocs.remove(getApplicationContext(), gone);
+                    return json("{\"error\":" + quote(getString(R.string.err_recent_gone)) + "}");
+                }
                 if (e.getCause() instanceof DocSession.TooBigException) {
                     DocSession.TooBigException big = (DocSession.TooBigException) e.getCause();
                     return json("{\"tooBig\":true,\"name\":" + quote(big.name) + ",\"size\":" + big.size

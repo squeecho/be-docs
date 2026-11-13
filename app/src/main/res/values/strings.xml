@@ -22,6 +22,7 @@
     <string name="pdf_read_failed">Couldn’t read the PDF.</string>
     <string name="err_no_permission">No permission to read the file. Open it again from the app you received it in.</string>
     <string name="err_not_found">File not found. Check that the download has finished.</string>
+    <string name="err_recent_gone">This file was moved or deleted, so it can’t be opened. It has been removed from Recent documents.</string>
     <string name="err_unknown">Unknown error</string>
     <string name="err_temp_dir">Couldn’t create a temporary folder.</string>
     <string name="err_cannot_open">Can’t open the file.</string>

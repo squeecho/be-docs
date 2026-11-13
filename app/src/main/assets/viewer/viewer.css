@@ -1283,6 +1283,189 @@ button:focus-visible, [role="slider"]:focus-visible { outline: 2px solid var(--a
   .notice.home > .btn { grid-column: 2; grid-row: 3; justify-self: start; margin-top: 14px; }
   .notice.home > .home-version { grid-column: 2; grid-row: 4; margin-top: 12px; }
   .notice.home > .home-link { grid-column: 2; grid-row: 5; justify-self: start; padding-left: 0; }
+
+  /* 최근 문서 목록이 있으면 두 칸 대신 한 줄로(목록이 넓게) */
+  .notice.home.home-recent {
+    display: block;
+    max-width: 760px;
+    padding: 12px 24px 20px;
+  }
+}
+
+/* 시작 화면 — 최근 문서가 있으면 앱을 켜자마자 목록부터(위: 이름·파일 열기, 아래: 최근 연 순서) */
+.notice.home.home-recent {
+  max-width: 640px;
+  padding: 16px 16px 32px;
+  text-align: left;
+}
+
+.home-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 4px 18px;
+}
+
+.notice .home-head h1 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: calc(24px * var(--ui-scale, 1));
+}
+
+.home-icon.home-icon-small {
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  flex: none;
+}
+
+.btn-primary.home-pick {
+  flex: none;
+  min-height: 44px;
+  padding: 10px 18px;
+  font-size: calc(15px * var(--ui-scale, 1));
+}
+
+.recent-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px 4px;
+}
+
+.recent-top h2 {
+  margin: 0;
+  font-size: calc(17px * var(--ui-scale, 1));
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.home-link.recent-clear {
+  margin: 0 -8px 0 0;
+  min-height: 44px;
+  padding: 10px 8px;
+  flex: none;
+}
+
+.recent-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.recent-item {
+  display: flex;
+  align-items: stretch;
+}
+
+.recent-item + .recent-item { border-top: 0.5px solid var(--hairline); }
+
+.recent-open {
+  flex: 1;
+  min-width: 0;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px 10px 14px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.recent-open:active, .recent-more:active { background: var(--press); }
+
+.recent-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recent-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: calc(15px * var(--ui-scale, 1));
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.recent-meta {
+  color: var(--muted);
+  font-size: calc(13px * var(--ui-scale, 1));
+}
+
+.recent-more {
+  flex: none;
+  width: 48px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: 700 calc(20px * var(--ui-scale, 1)) / 1 var(--ui-font);
+}
+
+/* 목록의 작은 형식 표시: 종이 모양 대신 형식 색의 네모 + 확장자 */
+.file-badge.file-badge-small {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  border-radius: 10px;
+  background: var(--tone);
+  box-shadow: none;
+  clip-path: none;
+}
+
+.file-badge.file-badge-small::after { display: none; }
+
+.file-badge-small .file-badge-ext {
+  inset: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 10.5px;
+  line-height: 40px;
+  letter-spacing: 0.02em;
+}
+
+.recent-note {
+  margin: 10px 4px 0;
+  color: var(--muted);
+  font-size: calc(12.5px * var(--ui-scale, 1));
+  line-height: 1.5;
+}
+
+.home-foot {
+  margin-top: 28px;
+  text-align: center;
+}
+
+.home-support {
+  margin: 0;
+  color: var(--muted);
+  font-size: calc(13px * var(--ui-scale, 1));
+  line-height: 1.5;
+}
+
+.home-foot .home-version { margin-top: 12px; }
+
+/* 목록 고치기를 묻는 창: 취소 · 하기 */
+.recent-ask .cell-pop-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .notice h1 {
@@ -1467,6 +1650,8 @@ body.word-mode .notice {
 .file-badge[data-tone="sheet"] { --tone: #1e7145; }
 .file-badge[data-tone="slides"] { --tone: #c43e1c; }
 .file-badge[data-tone="pdf"] { --tone: #d93025; }
+.file-badge[data-tone="cad"] { --tone: #0f766e; }
+.file-badge[data-tone="ai"] { --tone: #b45309; }
 
 .file-badge-ext {
   position: absolute;

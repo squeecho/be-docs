@@ -9,11 +9,14 @@ import android.graphics.pdf.PdfRenderer;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
+import android.system.ErrnoException;
+import android.system.Os;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -89,9 +92,35 @@ final class DocSession implements Closeable {
     }
 
     /**
-     * 다른 앱이 file:// 주소로 이 앱의 내부 파일(캐시에 받아 둔 문서 등)을 열게 하는 것을 막는다.
-     * 외부 저장소의 file:// 주소는 예전 파일 관리자 호환을 위해 그대로 연다.
+     * 시작 화면 "최근 문서"의 사본(RecentDocs)을 연다. 캐시에 하드 링크로 붙여(즉시, 자리 안 씀) 보통 문서처럼 쓰고,
+     * 문서를 닫으면 캐시 쪽 이름만 지워져 최근 문서 사본은 남는다. 링크가 안 되는 저장소면 복사한다.
      */
+    static DocSession fromRecent(Context context, File src, String name) throws IOException {
+        if (!src.isFile()) throw new FileNotFoundException(context.getString(R.string.err_recent_gone));
+        File dir = new File(context.getCacheDir(), CACHE_DIR);
+        if (!dir.isDirectory() && !dir.mkdirs()) {
+            throw new IOException(context.getString(R.string.err_temp_dir));
+        }
+        File copy = File.createTempFile("doc", ".bin", dir);
+        //noinspection ResultOfMethodCallIgnored
+        copy.delete();
+        try {
+            Os.link(src.getAbsolutePath(), copy.getAbsolutePath());
+        } catch (ErrnoException e) {
+            try (InputStream in = new FileInputStream(src); OutputStream out = new FileOutputStream(copy)) {
+                byte[] buf = new byte[64 * 1024];
+                for (int n; (n = in.read(buf)) > 0; ) out.write(buf, 0, n);
+            } catch (IOException | RuntimeException ex) {
+                //noinspection ResultOfMethodCallIgnored
+                copy.delete();
+                throw ex;
+            }
+        }
+        //noinspection ResultOfMethodCallIgnored
+        copy.setLastModified(System.currentTimeMillis());
+        return new DocSession(name, copy);
+    }
+
     /**
      * 앱이 뒤에 있는 동안 시스템이 앱을 정리했다가 다시 만들 때, 받아 둔 사본으로 다시 연다.
      * 카톡이 준 읽기 권한은 그때 사라졌을 수 있어서 원래 주소를 다시 읽지 않는다. 우리 캐시 폴더의 파일만 받는다.
@@ -110,6 +139,10 @@ final class DocSession implements Closeable {
         }
     }
 
+    /**
+     * 다른 앱이 file:// 주소로 이 앱의 내부 파일(캐시에 받아 둔 문서·최근 문서 사본 등)을 열게 하는 것을 막는다.
+     * 외부 저장소의 file:// 주소는 예전 파일 관리자 호환을 위해 그대로 연다.
+     */
     private static void rejectPrivateFile(Context context, Uri uri) throws IOException {
         if (!ContentResolver.SCHEME_FILE.equals(uri.getScheme()) || uri.getPath() == null) return;
         String target = new File(uri.getPath()).getCanonicalPath();
