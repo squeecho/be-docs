@@ -283,31 +283,40 @@ await check('파일 공유하기: 보낼 이름을 고칠 수 있고(확장자�
   return !outside.open && outside.share === 1 && outside.as.length === 2 ? '' : `바깥을 누르면 보내지 않고 닫혀야 함 ${info}`;
 });
 
-await check('문서 안내는 한 줄로 접히고(가장 중요한 것 먼저), 누르면 목록이 열리고 바깥을 누르면 닫힘', async () => {
+await check('문서 안내는 글 대신 ⋮ 왼쪽의 "!" 버튼(개수 표시)으로 접히고(가장 중요한 것 먼저), 누르면 목록이 열리고 바깥을 누르면 닫힘', async () => {
   const { ctx, page } = await open(M('word-extras.docx'));
   await waitState(page, ['extras']);
   await page.waitForTimeout(300);
   const strip = await page.evaluate(() => {
-    const s = document.getElementById('notes-strip');
-    return { shown: !s.hidden, text: s.textContent, lines: Math.round(s.getBoundingClientRect().height / 20), visibleNotes: [...document.querySelectorAll('.info-note')].filter((n) => n.offsetParent).length };
+    const b = document.getElementById('notes-btn');
+    const m = document.getElementById('menu-btn').getBoundingClientRect();
+    const r = b.getBoundingClientRect();
+    const bar = document.getElementById('bar').getBoundingClientRect();
+    return {
+      shown: !b.hidden, mark: b.querySelector('.bar-notes-mark').textContent, count: document.getElementById('notes-count').textContent,
+      summary: b.dataset.summary, label: b.getAttribute('aria-label'), gap: Math.round(m.left - r.right), sameRow: Math.abs((r.top + r.bottom) / 2 - (m.top + m.bottom) / 2) < 2,
+      barH: Math.round(bar.height), visibleNotes: [...document.querySelectorAll('.info-note')].filter((n) => n.offsetParent).length,
+    };
   });
-  await page.click('#notes-strip');
+  await page.click('#notes-btn');
   const listed = await page.evaluate(() => ({ panel: !document.getElementById('notes-panel').hidden, notes: [...document.querySelectorAll('#notes-panel .info-note')].filter((n) => n.offsetParent).length }));
   const splits = await page.evaluate(SPLITS);
   await page.mouse.click(200, 300);
   const closed = await page.evaluate(() => document.getElementById('notes-panel').hidden);
   await ctx.close();
-  if (!strip.shown || !/^i?수식 1개는 표시되지 않아요\.외 2개$/.test(strip.text) || strip.visibleNotes || strip.lines > 2) return `한 줄: ${JSON.stringify(strip)}`;
+  // 버튼은 ⋮ 왼쪽 같은 줄에 조금 띄워(8px 이상), 문서 위에는 안내 글이 없고 바는 한 줄 높이(52px 남짓)
+  if (!strip.shown || strip.mark !== '!' || strip.count !== '3' || strip.summary !== '수식 1개는 표시되지 않아요.' || !/^문서 안내 3개: 수식 1개는/.test(strip.label)
+    || strip.gap < 8 || !strip.sameRow || strip.visibleNotes || strip.barH > 60) return `안내 버튼: ${JSON.stringify(strip)}`;
   if (!listed.panel || listed.notes !== 3) return `목록: ${JSON.stringify(listed)}`;
   if (splits.length) return `낱말 쪼개짐: ${splits.slice(0, 3).join(', ')}`;
   return closed ? '' : '바깥을 눌러도 목록이 닫히지 않음';
 });
 
-await check('참고 안내(메모만 있는 문서)는 위쪽 줄에 띄우지 않고 메뉴의 문서 안내에만', async () => {
+await check('참고 안내(메모만 있는 문서)는 위쪽 "!" 버튼을 띄우지 않고 메뉴의 문서 안내에만', async () => {
   const { ctx, page } = await open(M('hwp-memo.hwp'));
   await waitState(page, ['extras']);
   await page.waitForTimeout(300);
-  const r = await page.evaluate(() => ({ strip: !document.getElementById('notes-strip').hidden, menu: document.getElementById('menu-notes').hidden ? '' : document.getElementById('menu-notes').textContent }));
+  const r = await page.evaluate(() => ({ strip: !document.getElementById('notes-btn').hidden, menu: document.getElementById('menu-notes').hidden ? '' : document.getElementById('menu-notes').textContent }));
   await ctx.close();
   return !r.strip && r.menu === '문서 안내 1개' ? '' : JSON.stringify(r);
 });
@@ -317,7 +326,7 @@ await check('AutoCAD 도면 PDF: 도면 글자의 검색용 주석(AutoCAD SHX T
   await waitState(page, ['rendered']);
   await page.waitForFunction(() => window.__r.some((r) => r.state === 'extras'), null, { timeout: 15000 }).catch(() => {});
   const r = await page.evaluate(() => ({
-    strip: !document.getElementById('notes-strip').hidden,
+    strip: !document.getElementById('notes-btn').hidden,
     notes: [...document.querySelectorAll('#notes-list .info-note-text')].map((n) => n.textContent),
   }));
   let listed = [];
@@ -340,7 +349,7 @@ await check('큰 표는 표 위에 전체 행 수를 알림', async () => {
   const { ctx, page } = await open(csv);
   await waitState(page, ['rendered']);
   const text = await page.evaluate(() => ({
-    strip: document.getElementById('notes-strip').hidden ? '' : document.getElementById('notes-strip-text').textContent,
+    strip: document.getElementById('notes-btn').hidden ? '' : document.getElementById('notes-btn').dataset.summary,
     end: (document.querySelector('.sheet .sheet-end') || {}).textContent || '',
   }));
   await ctx.close();
@@ -1336,7 +1345,7 @@ await check('일러스트(ai): PDF 호환 파일은 그림과 한계 안내 띠�
       const out = await page.evaluate(() => {
         document.getElementById('menu-btn').click();
         return {
-          strip: document.getElementById('notes-strip').hidden ? '' : document.getElementById('notes-strip-text').textContent,
+          strip: document.getElementById('notes-btn').hidden ? '' : document.getElementById('notes-btn').dataset.summary,
           canvas: document.querySelectorAll('.page canvas').length,
           print: !document.getElementById('menu-print').hidden,
           pdf: !document.getElementById('menu-pdf').hidden,
@@ -1395,7 +1404,7 @@ await check('CAD 도면: DWG·DXF를 그리고 한계 안내, 두 손가락 확�
         const r = await page.evaluate(() => window.__r.find((x) => x.state === 'rendered'));
         if (r.kind !== 'cad' || r.reader !== 'dxf-read' || r.texts !== 2) bad.push(`DXF 보고 ${JSON.stringify(r)}`);
         if (reqs.some((u) => /libredwg/.test(u))) bad.push('DXF인데 DWG 엔진을 받음');
-        const strip = await page.evaluate(() => (document.getElementById('notes-strip').hidden ? '' : document.getElementById('notes-strip-text').textContent));
+        const strip = await page.evaluate(() => (document.getElementById('notes-btn').hidden ? '' : document.getElementById('notes-btn').dataset.summary));
         if (!/CAD 도면은 간단히 보여 줘요/.test(strip)) bad.push(`한계 안내 띠 없음: ${strip}`);
         const menu = await page.evaluate(() => {
           document.getElementById('menu-btn').click();

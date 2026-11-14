@@ -312,8 +312,9 @@ function actionNote(text, label, onClick) {
   return note;
 }
 
-// 문서 안내(그리지 못한 것·읽기 모드·잘라 보여 준 것 등)는 문서 위에 띠로 쌓지 않고 위쪽 바 아래 한 줄로 접는다.
-// 한 줄에는 가장 중요한 안내와 남은 개수만 보이고, 누르면 전체 목록(각 안내의 동작 버튼 포함)이 아래에서 올라온다.
+// 문서 안내(그리지 못한 것·읽기 모드·잘라 보여 준 것 등)는 문서 위에 글로 띄우지 않고 위쪽 바의 ⋮ 왼쪽 "!" 버튼으로 접는다
+// (열자마자 글이 뜨면 어수선하다는 사용자 의견, 2026-11). 안내가 둘 이상이면 개수를 붙이고, 누르면 전체 목록
+// (각 안내의 동작 버튼 포함)이 아래에서 올라온다.
 // scope: 'doc'(문서 전체) · 'sheet'(지금 보는 시트, 시트를 바꾸면 바뀐다). priority가 높을수록 앞(한 줄 요약)에 온다:
 // 3 내용을 잘라 보여 줌·읽기 모드, 2 보이지 않는 내용·간단한 방식, 1 그 밖의 알림.
 function addNotice(note, { scope = 'doc', priority = Number(note.dataset.priority) || 1 } = {}) {
@@ -328,14 +329,15 @@ function clearNotices(scope) {
   for (const n of [...$('notes-list').children]) if (!scope || n.dataset.scope === scope) n.remove();
 }
 
-// 위쪽 안내 줄은 보이는 내용에 영향이 있을 때만(우선순위 2 이상: 표가 잘림·그리지 못한 것·다른 방식으로 엶·읽기 모드)
-// 띄운다. 메모·노트·첨부·숨긴 행 같은 참고 안내(1)는 메뉴(⋮)의 "문서 안내"에서만 본다. 별일 아닌 것까지 문서 위에
-// 경고처럼 띄우면 앱이 복잡하고 불안해 보인다(구글 드라이브는 띄우지 않는다).
+// "!" 버튼은 보이는 내용에 영향이 있을 때만(우선순위 2 이상: 표가 잘림·그리지 못한 것·다른 방식으로 엶·읽기 모드)
+// 띄운다. 메모·노트·첨부·숨긴 행 같은 참고 안내(1)는 메뉴(⋮)의 "문서 안내"에서만 본다. 별일 아닌 것까지 위에
+// 경고처럼 띄우면 앱이 복잡하고 불안해 보인다(구글 드라이브는 띄우지 않는다). 가장 중요한 안내 글은 버튼의
+// 읽어 주기 이름(aria-label)과 data-summary에 둔다.
 function renderNotesStrip() {
   const items = [...$('notes-list').children];
-  const strip = $('notes-strip');
+  const btn = $('notes-btn');
   const menuItem = $('menu-notes');
-  strip.hidden = !items.length || Number(items[0].dataset.priority) < 2;
+  btn.hidden = !items.length || Number(items[0].dataset.priority) < 2;
   menuItem.hidden = !items.length;
   if (!items.length) {
     closeNotes();
@@ -343,10 +345,9 @@ function renderNotesStrip() {
   }
   const first = items[0].querySelector('.info-note-text');
   const text = first ? first.textContent : '';
-  const more = items.length > 1 ? T('외 {n}개', { n: items.length - 1 }) : '';
-  $('notes-strip-text').textContent = text;
-  $('notes-strip-more').textContent = more;
-  strip.setAttribute('aria-label', T('문서 안내 {n}개: {text}', { n: items.length, text }));
+  btn.dataset.summary = text;
+  $('notes-count').textContent = items.length > 1 ? String(items.length) : '';
+  btn.setAttribute('aria-label', T('문서 안내 {n}개: {text}', { n: items.length, text }));
   menuItem.textContent = T('문서 안내 {n}개', { n: items.length });
   syncBarHeight();
 }
@@ -470,7 +471,7 @@ function setupMenu() {
     }
   });
   $('open-elsewhere').addEventListener('click', openElsewhere);
-  $('notes-strip').addEventListener('click', openNotes);
+  $('notes-btn').addEventListener('click', openNotes);
   $('notes-close').addEventListener('click', closeNotes);
   // 목록 안의 동작(원본 모양으로 보기·메모 보기·숨기기 취소 등)을 누르면 목록을 닫고 그 동작을 보여 준다.
   $('notes-panel').addEventListener('click', (e) => {

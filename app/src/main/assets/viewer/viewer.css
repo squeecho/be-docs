@@ -24,6 +24,7 @@
   --accent: #0b5c8f;
   --accent-soft: rgba(11, 92, 143, 0.1);
   --accent-glow: rgba(11, 92, 143, 0.32);
+  --notice: #b45309;
   --on-accent: #ffffff;
   --glass: rgba(242, 243, 246, 0.78);
   --glass-strong: rgba(255, 255, 255, 0.9);
@@ -161,43 +162,51 @@ body.slides-mode .bar.bar-away {
 .bar-menu:active,
 .bar-menu[aria-expanded="true"] { background: var(--press); }
 
-/* 문서 안내 한 줄: 가장 중요한 안내 + 남은 개수. 누르면 전체 목록이 아래에서 올라온다. */
-.notes-strip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: calc(100% - 10px);
-  margin: 2px 0 6px;
-  padding: 8px 12px;
-  border: 0;
-  border-radius: 12px;
-  background: var(--accent-soft);
-  color: var(--text);
-  font: inherit;
-  font-size: calc(13px * var(--ui-scale, 1));
-  text-align: left;
-}
-
-.notes-strip:active { background: var(--press); }
-
-.notes-strip .info-note-icon { width: 16px; height: 16px; font-size: 10px; line-height: 16px; }
-
-.notes-strip-text {
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.notes-strip-more {
+/* 문서 안내 버튼: ⋮ 왼쪽에 조금 띄워 둔 "!"(보이는 내용에 영향이 있는 안내가 있을 때만). 둘 이상이면 개수 표시.
+   누르면 전체 목록이 아래에서 올라온다. 글은 문서 위에 띄우지 않는다. */
+.bar-notes {
   flex: none;
-  color: var(--accent);
-  font-weight: 650;
+  position: relative;
+  width: 44px;
+  height: 44px;
+  margin-right: 8px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  padding: 0;
+  transition: background-color 0.15s;
 }
 
-.notes-strip-more::after { content: ' ›'; }
-.notes-strip-more:empty { display: none; }
+.bar-notes:active { background: var(--press); }
+
+.bar-notes-mark {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--notice);
+  color: #ffffff;
+  font: 800 15px/1 var(--ui-font);
+}
+
+.bar-notes-count {
+  position: absolute;
+  top: 3px;
+  right: 1px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--text);
+  color: var(--bg);
+  font: 750 10.5px/17px var(--ui-font);
+  text-align: center;
+}
+
+.bar-notes-count:empty { display: none; }
 
 /* 메뉴: 오른쪽 위에 떠오르는 유리 카드 */
 .menu {

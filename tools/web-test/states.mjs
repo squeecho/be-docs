@@ -138,8 +138,18 @@ const INSPECT = () => {
       inScreen('⋮', btn);
       hit('⋮', btn);
       contrast('바 제목', document.getElementById('title'));
-      const strip = document.getElementById('notes-strip');
-      if (shown(strip)) contrast('안내 한 줄', strip.querySelector('.notes-strip-text'));
+      const notes = document.getElementById('notes-btn');
+      if (shown(notes)) {
+        inScreen('안내 !', notes);
+        hit('안내 !', notes);
+        contrast('안내 !', notes.querySelector('.bar-notes-mark'));
+        const count = document.getElementById('notes-count');
+        if (count.textContent) contrast('안내 개수', count);
+        // 화면 기준(확대해도 바는 화면 크기 그대로라 화면 px로 잰다)
+        const r = scr(notes);
+        const m = scr(btn);
+        if (m.x - (r.x + r.w) < 8) out.push(`안내 !가 ⋮에 붙음(${Math.round(m.x - (r.x + r.w))}px)`);
+      }
     }
     const tabs = document.getElementById('tabs');
     if (what.bar && what.atTop && shown(tabs)) {
