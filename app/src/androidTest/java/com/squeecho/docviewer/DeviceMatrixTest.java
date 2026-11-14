@@ -76,6 +76,7 @@ public class DeviceMatrixTest {
             "application/vnd.ms-word.document.macroenabled.12", "application/vnd.ms-word.template.macroenabled.12",
             "application/pdf", "application/illustrator", "application/vnd.adobe.illustrator", "application/postscript",
             "image/vnd.dwg", "application/acad", "application/dwg", "image/vnd.dxf", "application/dxf",
+            "application/x-autocad", "application/autocad_dwg", "drawing/dwg", "application/vnd.dwg",
             "application/rtf", "text/rtf", "application/vnd.oasis.opendocument.text",
             "application/vnd.oasis.opendocument.presentation", "application/vnd.oasis.opendocument.spreadsheet",
             "application/octet-stream",
@@ -101,6 +102,38 @@ public class DeviceMatrixTest {
         Intent sendText = new Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "https://example.com");
         if (resolvesToUs(pm.queryIntentActivities(sendText, 0), app)) missing.add("SEND text/plain에 뜨면 안 됨");
         assertTrue("목록에 안 뜨는 형식: " + missing, missing.isEmpty());
+    }
+
+    @Test
+    public void appearsInOpenWithListForCadFileNameWithAnyType() {
+        // 카톡 등이 DWG·DXF에 목록에 없는 형식 이름을 붙여 넘겨도, 주소가 .dwg·.dxf로 끝나면 열기 목록에 뜬다
+        // (경로에 점이 여러 개여도: pathPattern이 점 개수마다 있음). 다른 형식의 파일(사진·압축)에는 뜨지 않는다.
+        Context app = ApplicationProvider.getApplicationContext();
+        PackageManager pm = app.getPackageManager();
+        Uri kakao = new Uri.Builder().scheme("content").authority("com.kakao.talk.FileProvider")
+                .appendEncodedPath("external_files/emulated/0/Android/data/com.kakao.talk/contents/Mg==")
+                .appendPath("화간고 대구침산.dwg").build();
+        Uri dotted = new Uri.Builder().scheme("content").authority("a.b.provider")
+                .appendEncodedPath("x.y/z.w/v1.2.3").appendPath("평면도.rev.2.DXF").build();
+        Uri plain = new Uri.Builder().scheme("content").authority("files").appendPath("plan.dwg").build();
+        List<String> missing = new ArrayList<>();
+        for (Uri uri : new Uri[]{kakao, dotted, plain}) {
+            for (String type : new String[]{"application/x-kakao-unknown", "application/vnd.something", "image/vnd.dwg"}) {
+                if (!resolvesToUs(pm.queryIntentActivities(new Intent(Intent.ACTION_VIEW).setDataAndType(uri, type), 0), app)) {
+                    missing.add(uri.getPath() + " · " + type);
+                }
+            }
+        }
+        assertTrue("CAD 파일 이름인데 열기 목록에 안 뜸: " + missing, missing.isEmpty());
+        List<String> extra = new ArrayList<>();
+        String[][] others = {{"photo.jpg", "image/jpeg"}, {"archive.zip", "application/zip"}, {"drawing.dwg.zip", "application/zip"},
+                {"movie.mp4", "video/mp4"}, {"dwg", "application/x-unknown"}};
+        for (String[] o : others) {
+            Uri uri = new Uri.Builder().scheme("content").authority("com.kakao.talk.FileProvider")
+                    .appendEncodedPath("external_files/com.kakao.talk/contents").appendPath(o[0]).build();
+            if (resolvesToUs(pm.queryIntentActivities(new Intent(Intent.ACTION_VIEW).setDataAndType(uri, o[1]), 0), app)) extra.add(o[0]);
+        }
+        assertTrue("CAD가 아닌 파일의 열기 목록에 뜸: " + extra, extra.isEmpty());
     }
 
     private static boolean resolvesToUs(List<ResolveInfo> list, Context app) {
