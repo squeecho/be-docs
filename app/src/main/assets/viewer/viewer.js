@@ -6717,6 +6717,22 @@ function syncBarHeight() {
   if (!bar.hidden) document.documentElement.style.setProperty('--bar-h', `${bar.offsetHeight}px`);
 }
 
+// [진단 · 내부 테스트 전용 · 다음 정식 판에서 뺀다] 다른 앱이 넘긴 것을 화면 아래에 보여 준다(캡처해 보내 달라고 부탁).
+function showDiagnostic() {
+  let text = '';
+  try {
+    text = bridge && bridge.diagnostic ? bridge.diagnostic() : '';
+  } catch (_) {
+    text = '';
+  }
+  if (!text) return;
+  const box = document.createElement('div');
+  box.className = 'diag-box';
+  box.textContent = `진단(내부 시험용) — 이 화면을 캡처해 주세요. 누르면 닫혀요.\n${text}`;
+  box.addEventListener('click', () => box.remove());
+  document.body.append(box);
+}
+
 async function main() {
   window.__beDocsStarted = true;
   localizeStatic();
@@ -6726,6 +6742,7 @@ async function main() {
   watchBackTargets();
   setupDoubleTapReset();
   if (window.__beDocsUnsupported) return;
+  showDiagnostic();
   const info = await getJson('/doc/info');
   if (info.empty) {
     showHome();
