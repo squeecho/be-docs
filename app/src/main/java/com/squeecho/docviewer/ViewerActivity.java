@@ -299,29 +299,8 @@ public class ViewerActivity extends Activity {
         } else if (Intent.ACTION_SEND.equals(action)) {
             uri = streamExtra(intent);
         }
-        diagnosticText = uri == null ? "" : diagnosticOf(intent, action, type, uri);
         if (uri != null) closeOlderScreensInTask();
         open(uri, type, false);
-    }
-
-    // [진단 · 내부 테스트 전용 · 다음 정식 판에서 뺀다] 다른 앱이 무엇을 넘겼는지(방식·형식 이름·주소·보낸 앱)를 화면에 보여 준다.
-    private volatile String diagnosticText = "";
-
-    private String diagnosticOf(Intent intent, String action, String type, Uri uri) {
-        String resolved;
-        try {
-            resolved = getContentResolver().getType(uri);
-        } catch (RuntimeException e) {
-            resolved = "(못 읽음: " + e.getClass().getSimpleName() + ")";
-        }
-        String from = getReferrer() != null ? getReferrer().toString() : "(모름)";
-        String text = "방식: " + (Intent.ACTION_VIEW.equals(action) ? "열기(VIEW)" : "공유(SEND)")
-                + "\n형식 이름: " + (type == null ? "(없음)" : type)
-                + "\n제공자가 알린 형식: " + (resolved == null ? "(없음)" : resolved)
-                + "\n주소: " + uri
-                + "\n보낸 앱: " + from;
-        Log.i(TAG, "diagnostic: " + text.replace('\n', ' '));
-        return text;
     }
 
     /** 같은 작업 안에서 이 화면 아래에 남은 이 앱의 화면(시작 화면·전에 본 문서)을 닫는다. 다른 앱의 작업은 건드리지 않는다. */
@@ -1066,12 +1045,6 @@ public class ViewerActivity extends Activity {
         @JavascriptInterface
         public void loadingDone() {
             stopEscapeWatch();
-        }
-
-        /** [진단 · 내부 테스트 전용] 다른 앱이 넘긴 것(없으면 ""). */
-        @JavascriptInterface
-        public String diagnostic() {
-            return diagnosticText;
         }
 
         @JavascriptInterface

@@ -2104,20 +2104,3 @@ html.cad-mode, html.cad-mode body { touch-action: none; overflow: hidden; oversc
 #doc.cad { position: fixed; inset: 0; z-index: 0; background: #fff; }
 .cad-canvas { display: block; touch-action: none; }
 #doc.cad[data-background="dark"] { background: #1f2228; }
-
-/* [진단 · 내부 테스트 전용 · 다음 정식 판에서 뺀다] 다른 앱이 넘긴 것 */
-.diag-box {
-  position: fixed;
-  left: 8px;
-  right: 8px;
-  bottom: 8px;
-  z-index: 100;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: #111316;
-  color: #f2f3f6;
-  font: 13px/1.5 ui-monospace, monospace;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  box-shadow: var(--shadow-float);
-}
